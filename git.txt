@@ -1,0 +1,8 @@
+¿Qué sigue ahora?
+Cada vez que hagas cambios en tu Proyecto-Tienda (por ejemplo, si agregas una nueva función en Main.py), solo tienes que repetir estos 3 comandos en la terminal:
+
+git add . (Prepara los cambios).
+
+git commit -m "Explica aquí qué cambiaste" (Guarda la versión localmente).
+
+git push (Sube los cambios a GitHub). ¡Ya no necesitas el -u origin main porque Git ya sabe a dónde enviarlo!
