@@ -132,7 +132,7 @@ inventario=Inventario() #instancia de la clase Inventario, que contiene la lista
     compra.mostrar_factura()
     print("Compra registrada exitosamente")
 """
-    
+
 
 #------------- MENU PRINCIPAL ---------------
 
@@ -174,34 +174,90 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
             
             while True: #bucle para validar que se ingrese un documento correctamente
                 documento= input(f"Usuario {nombre} ingrese su documento: ")
-                if documento.isdigit() and 8<= len(documento) <=11: #verificacion de los datos para el documento 
-                    documento=int(documento) #convertimos el documento a entero
-                    break
+                if not documento: #documento vacio
+                    print('Debes ingresar un documento. Este campo es obligatorio para el registro')
+                    continue#reiniciar al while
+                elif not documento.isdigit():
+                    print('Ingrese unicamente numeros')
+                    continue#reiniciar el while
+                
+                elif len(documento)>=8 and len(documento)<=10:#si el documento contiene de 8 a 10 numeros
+                    try:
+                        documento=int(documento)#convertimos a entero cuando sean validos
+                    
+                        #validar si existe ya en la base de datos
+                        existe=False#variable para verificar si existe o no
+                        for usuario in inventario.usuarios_registrados:
+                            if usuario.documento ==documento:
+                                existe=True
+                                break#dejarlo de buscar si lo encuentra
+                        if existe:
+                            print(f'El documento {documento} ya esta en uso. Intente nuevamente')
+                            #no hay break aqui asi que el while True se repite
+                        else:
+                            #paso todas las pruebas
+                            #documento=documento #guardamos el valor validado
+                            break   #rompe el while y pasa al siguiente requisito    
+                
+                    except:
+                        print('Ingrese su numero de documento sin espacios ni puntos')
+                        continue
                 else:
-                   print("Documento inválido. Por favor, ingrese solo números de 8 a 11 dígitos.")
-                   continue
+                    print('Ingrese un documento con minimo 8 numeros y maximo 10 numeros')
                
                
             while True: #bucle para validar que se ingrese un telefono correctamente
                 telefono= input(f"Usuario {nombre} ingrese su telefono: ")
-                if telefono.isdigit(): #verificacion de los datos para el telefono
-                    telefono=int(telefono) #convertimos el telefono a entero
-                    break
+                if not telefono:#telefono vacio
+                    print('Debes ingresar un telefono. Este campo es obligatorio para el registro')
+                    continue# reiniciar el while
+                elif not telefono.isdigit():
+                    print('Ingrese unicamente numeros')
+                    continue#reinicie el while
+                elif len(telefono)==10:#si la longitud del telefono es 10
+                    try:
+                        telefono=int(telefono)#convertios a entero el numero de telefoono
+                        #validar si existe ya en la base de datos
+                        existe=False#variable para verificar si existe o no
+                        for usuario in inventario.usuarios_registrados:
+                            if usuario.telefono==telefono:
+                                existe=True
+                                break#dejarlo de buscar si lo encuentra
+                        if existe:
+                            print(f'El telefono {telefono} ya esta en uso. Intente nuevamente')
+                            #el while se repite
+                    
+                        else:
+                            #si llegamos aqui pasamos todas las pruebas
+                            break# rompe el codigo y guarda el telefono
+                    except:
+                        print('Ingrese su telefono sin espacios ni puntos')
+                        continue
                 else:
-                   print("Telefono inválido")
-                   continue  
-               
-               
-               
+                    print('Ingrese un telefono con maximo 10 numeros')
+                
             while True: #bucle parqa validar que se ingrese un correo correctamente
                 correo=input(f"Usuario {nombre} ingrese su correo: ")
-                #verificacion basica: que contega @ y .com
-                if "@" in correo and ".com" in correo:
-                    #aqui podrias agregar validaciones mas complejas si lo deseas
-                    break
-                else: 
-                    print("Correo invalido")
+                if not correo:#correo vacio
+                    print('Debes ingresar un correo. Este campo es obligatorio para el registro')
+                    continue#reinicia el bucle
+
+                    #verificacion basica: que contega @ y .com
+                if "@" in correo and ".com" in correo:#si es correcto que contenga esto
+                    existe=False
+                    for usuario in inventario.usuarios_registrados:#buscar que el correo no este repetido
+                        if usuario.correo==correo:
+                            existe=True
+                            break#dejarlo de buscar si lo encuentra
+                    if existe:
+                        print(f'El correo {correo} ya esta en uso. Intente nuevamnete')
+                        #el while se repite
+                    else:#si llegamos aqui pasamos todas las pruebas
+                        break
+                else:
+                    print('Ingrese un correo valido. Debe contener "@" y ".com"')
                     continue
+                
                 
             while True: #bucle para validar que se ingrese una contraseña segura
                 contrasena=input(f'Usuario {nombre} ingrese su contraseña: ')
@@ -245,15 +301,15 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                 usuario_autenticado = None
 
                 # Recorremos la lista 'usuarios_registrados' que vive dentro del objeto 'inventario'.
-                # 'usu' representa a cada objeto de la clase 'Usuarios' guardado en esa lista.
-                for usu in inventario.usuarios_registrados:
+                # 'usuario' representa a cada objeto de la clase 'Usuarios' guardado en esa lista.
+                for usuario in inventario.usuarios_registrados:
             
             # Comparamos si el documento del objeto coincide con el ingresado Y
             # si la contraseña del objeto coincide con la ingresada.
-                    if usu.documento == doc_login and usu.contrasena == contrasena_login:
+                    if usuario.documento == doc_login and usuario.contrasena == contrasena_login:
                 
                 # Si coinciden, guardamos el objeto completo en nuestra variable de control.
-                        usuario_autenticado = usu
+                        usuario_autenticado = usuario
                 
                 # Usamos 'break' para dejar de buscar, ya que encontramos al usuario.
                         break
@@ -279,6 +335,7 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                         if opcion_gestion < 1 or opcion_gestion > 4:
                             print("Opción fuera de rango.")
                             continue
+                        
 
                         if opcion_gestion == 1:#INVENTARIO 
                         # Aquí llamaríamos a la función que maneja el inventario, pasando 'usuario' e 'inventario'.
@@ -287,7 +344,7 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                             print("1. Agregar producto")#Agregar producto: solicita al usuario los detalles del producto (nombre, precio, categoría, stock), 
                             #valida los datos, crea un nuevo objeto de tipo Productos 
                             #y lo agrega a la lista de productos del inventario.
-                            print("2. Eliminar producto")#Eliminar producto: muestra una lista de productos con sus IDs, 
+                            print("2. Disponibilidad de un producto")#Eliminar producto: muestra una lista de productos con sus IDs, 
                             #solicita al usuario el ID del producto a eliminar,
                             print("3. Modificar producto")#Modificar producto: muestra una lista de productos con sus IDs, solicita al usuario el ID del producto a modificar,
                             #luego solicita los nuevos detalles del producto, valida los datos y actualiza el producto
@@ -303,6 +360,7 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                             if opcion_inventario < 1 or opcion_inventario > 5:
                                 print("Opción fuera de rango.")
                                 continue
+                            
 
                             if opcion_inventario == 1:#OPCION 1: AGREGAR PRODUCTO al inventario
                                 print(f"\n--- AGREGAR PRODUCTO A INVENTARIO ---")
@@ -310,44 +368,73 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                 #Solicitamos detalles del producto al usuario
                                 #validacion del nombre del prodcuto
                                 while True:
-                                    nombre=input("Nombre del producto: ")#nombre del plato a registrar
-                                    if not es_letras_y_espacios(nombre) or nombre is None:#verificacion de los datos para nombre del producto
-                                       print("Error: Nombre invalido. Use solo letras y espacios")
-                                    break#solo llega aqui si el nombre es valido
-
+                                    nombre=input("Nombre del producto: ").strip()#nombre del plato a registrar
+                                        
+                                    if not nombre:#en caso de nombre vacio
+                                        print('Este campo es obligatorio. Ingrese un nombre')
+                                        continue#volvemos al inicio
+                                    if not es_letras_y_espacios(nombre):#verificacion de los datos para nombre del producto
+                                        print('Error: Ingrese unicamente letras')
+                                        continue#volvemso al inicio
+                                        
+                                    #si el nombre no es vacio y contiene las letras
+                                    existe=False
+                                    for producto in inventario.lista_productos:#buscar  que no hayan nombre repetidos
+                                        if producto.nombre.lower()==nombre.lower():
+                                            existe=True
+                                            break
+                                    if existe:
+                                        print('Ese nombre ya esta en uso. Ingrese un nombre diferente')
+                                        continue#reinicia al while hasta el principio
+                                    else:#paso todas las verificaciones
+                                        break#si llegamos aqui todo esta bien
+                                        
+                                        
+                                        
                                 while True:#Validacion del precio del producto
                                     precio=input("Precio a la venta del producto: ").strip()
                                     if not precio:#precio vacio 
-                                        print("Precio incorrecto, ingrese un precio para el plato")#mensaje de advertencia
-                                        continue
-                                    try:#si el precio no es vacio
-                                        precio=int(precio)#intentar pasarlo a numero entero
-                                        if precio<=0:#si el precio es inferior o igual a 0 
-                                            print('Precio incorrecto, ingrese un precio positivo o mayor a 0')
-                                            continue
-                                        else:
-                                            break
-                                    except:
-                                        print('Precio incorrecto, ingrese un precio valido')#en caso de ingresar caracteres especiales o letras
-                                        continue
+                                        print("Este campo es obligatorio. Ingrese un precio")#mensaje de advertencia
+                                        continue#vuelve a pedir el precio
+                                    
+                                    if not precio.isdigit():
+                                        print('Ingrese un precio numerico sin espacios ni puntos ni comas')
+                                        continue#vuelve a pedir el precio
+                                    #si el precio no es vacio
+                                    precio=float(precio)#intentar pasarlo a numero flotante
+                                    if precio<=0:#si el precio es inferior o igual a 0 
+                                        print('Precio incorrecto, ingrese un precio mayor a 0')
+                                        continue#vuelve al while
+                                    else:#si llego aqui el precio es totalmente correcto
+                                        break
+
                                     
                                 while True:#Validacion de la categoria del produto
-                                    categoria=input(f"Categoria del producto {nombre}: ")
+                                    categoria=input(f"Categoria del producto {nombre}: ").strip()
                                 #La función 'es_letras_y_espacios' verifica que el nombre contenga solo letras y espacios, y que no esté vacío.
-                                    if  not es_letras_y_espacios(categoria) or categoria is None:#verificacion de los datos para categoria del producto
-                                      print("Error: Categoria invalida. Use solo letras y espacios")
-                                    break#solo llega aqui si la categoria es valida
-            
+                                    if  not categoria:#en caso de categoria vacia
+                                        print('Este campo es obligatorio. Ingrese una categoria')
+                                        continue#vuelve a pedir la categoria
+                                    if not es_letras_y_espacios(categoria):#se verifica que no contenga ni numeros ni caracteres especiales
+                                        print('Error: Categoria invalida. Ingrese unicamente letras y espacios')
+                                        continue#reinicia el bucle
+                                    break#si las validaciones son correctas
+                                
             
                                 while True: #validacion del stock del producto
-                                    try:
-                                        stock=int(input(f"Cantidad de stock del prodcuto {nombre}:"))
-                                    except ValueError:
-                                        print("Error: Ingrese un numero entero valido")
-                                        continue
+                                    stock=input(f"Cantidad de stock del prodcuto {nombre}: ").strip()
+                                    
+                                    if not stock:#en caso de que sea vacio
+                                        print('Este campo es obligatorio. Ingrese un stock')
+                                        continue#reinicia el while
+                                    if not stock.isnumeric():#en caso de que no contenga numeros
+                                        print('Ingrese unicamente numeros enteros')
+                                        continue#reinicia el while
+                                    
+                                    stock=int(stock)
                                     if stock<=0:
-                                        print("Els stock debe ser mayor a cero")
-                                        continue
+                                        print('Ingresa un stock mayor a 0')
+                                        continue#reinicia el while
                                     break#Solo llaga aqui si el stock es valido
                 
                                 id_producto=inventario.generar_id_productos()#generador de Ids para los productos creados
@@ -359,32 +446,25 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                 print(f'Producto agregado con ID automatico {id_producto}')
             
             
-                            #OPCION 2: ELIMINAR PRODUCTO
+                            #OPCION 2: DESACTIVAR UN PRODUCTO o cambiar la disponiblidad 
                             elif opcion_inventario == 2:
-                               print(f"\n--- ELIMINAR PRODUCTO DEL INVENTARIO ---")
-                               trabajador.ver_inventario(inventario)#muestra el inventario para saber que producto eliminar
-                               while True: #bucle para validar que se ingrese un nombre de producto correcto
-                                    nombre_producto=input("Ingrese el nombre del producto a eliminar: ").strip()
-                                    if not es_letras_y_espacios(nombre_producto) or nombre_producto is None:#verificacion de los datos para nombre del producto a eliminar
-                                       print("Error: Nombre invalido. Use solo letras y espacios")
-                                       continue #reiniciar el bucle inmediantamente para volver a pedir el nombre del prodcuto
-                
-                                    if not nombre_producto:#validar que no este vacio
-                                       print("Error: El nombre del producto no puede estar vacio")
-                                       continue
-                                   #se llama al metodo eliminar productos de la clase inventario 
-                                    if inventario.eliminar_producto(nombre_producto):#si el metodo retorna True, se elimino el producto  
-                                        print(f"Producto {nombre_producto} eliminado exitosamente")
-                                        break
-                                    else:#si el metodo retorna False, no se encontro el producto con ese nombre
-                                         print(f"Error: No se encontró el producto con el nombre '{nombre_producto}' en el inventaio")
+                                print(f"\n--- DISPONIBILIDAD DE PRODUCTOS DEL INVENTARIO ---")
+                                trabajador.ver_inventario(inventario)#muestra el inventario para saber que producto eliminar
+                                try:
+                                   codigo_producto=int(input('\nIngrese el codigo del producto a cambiar la disponibilidad: '))
+                                except:
+                                   print('Error: Ingrese un numero valido')#en caso de ingresar letras u otros tipos de caracteres
+                                   continue
+                               
+                                trabajador.cambiar_disponibilidad_producto(inventario,codigo_producto)
+                               
     
     
                             #OPCION 3: EDITAR UN PRODUCTO (nombre, precio, categoria o stock)
                             elif opcion_inventario == 3:
                                 try:
                                     trabajador.ver_inventario(inventario)#muestra el inventario para saber cual Producto(ID) quiere editar
-                                    id_p=int(input('Ingrese el codigo del producto a editar'))#id_p es el ID del producto qe se quiere editar
+                                    id_p=int(input('\nIngrese el codigo del producto a editar: '))#id_p es el ID del producto qe se quiere editar
                                 except:
                                     print('Error: Ingrese un numero valdio')#en caso de que se ingrese una opcion incorrecta
                                     continue
@@ -460,8 +540,11 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                             elif  opcion_inventario == 4:  #ver inventario     
                                 print('\n------INVENTARIO ACTUAL------')
                                 inventario.mostrar_inventario()
-                                    
-                                    
+                                           
+                            elif opcion_inventario==5:
+                                print('Regresando al menu anterior....')
+                                break
+                                       
                                        
 
                         elif opcion_gestion == 2:
@@ -472,7 +555,7 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                           pass  # Reemplaza con la llamada a tu función de gestión de compras
                         elif opcion_gestion == 4:
                           print(f"¡Hasta luego, {usuario_autenticado.nombre}!")
-                        break
+                          break
                 else:
             # Si el bucle terminó y la variable sigue siendo None, los datos estaban mal.
                     print("\nError: El número de documento o la contraseña son incorrectos.")

@@ -16,14 +16,19 @@ class Usuarios:
         
     def agregar_productos(self,inventario,producto):
         #funcion que permite al usuario(trabajador) agregar ub objeto Producto al inventario
-         inventario.agregar_producto()
+         inventario.agregar_producto(producto)
          
          
-    def eliminar_productos(self,inventario,nombre_producto):
-        #funcion que permite al trabajador eliminar un producto del inventario por su nombre
-        #internamente llama al metodo eliminar_producto() de Invetario, ya 
-        #Qeu recorre la lista y elimina el producto
-        inventario.eliminar_producto(nombre_producto)#se llama la funcion eliminar producto de la clase inventario
+    def cambiar_disponibilidad_producto(self,inventario,codigo_producto):#cambiar la disponibilidad de un producto
+        #activar o desactivar en el inventario
+        for producto in inventario.lista_productos:#recorre la lista que guarda los productoa en la clase INVENTARIO
+            if producto.codigo==codigo_producto:#busca por codigo el producto
+                producto.cambiarDisponibilidad()#si lo encuentra se llama a la funcion cambiar disponibilidad de la clase 
+                #producto
+                print(f'Disponibilidad del producto {producto.nombre} cambiada a {producto.disponibilidad}')
+                return
+        print('Producto no encontrado')#en caso contrario lanzar un mensaje de error
+
     
     def editar_productos(self,inventario,id_producto,nuevo_nombre=None,nuevo_precio=None,nueva_categoria=None):#funcion que ayuda al menuSistema a hacer validaciones
     #el atrabajador puede editar el precio de los platos

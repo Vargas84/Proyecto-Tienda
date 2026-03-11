@@ -32,11 +32,11 @@ class Inventario:
         #PRODCUTOS DEL INVENTARIO
         print("\n--- INVENTARIO ---")
         # Usamos f-strings para que las columnas queden alineadas
-        print(f"{'Nombre':<20} | {'Precio':<10} | {'Stock':<10} | {'Categoría':<15}")
-        print("-" * 60)
+        print(f"{'Codigo':<10} | {'Nombre':<20} | {'Precio':<10} | {'Stock':<10} | {'Categoría':<15} | {"Disponibilidad":<20}")
+        print("-" * 100)
         for producto in self.lista_productos:
             #<20 significa: reserca 20 espacios a la isquierda del texto
-            print(f"{producto.nombre:<20} | {producto.precio:<10} | {producto.stock:<10} | {producto.categoria:<15}")  
+            print(f"{producto.codigo:<10} | {producto.nombre:<20} | {producto.precio:<10} | {producto.stock:<10} | {producto.categoria:<15} | {producto.disponibilidad:<20}")  
         return True #Retorna True porque si habia productos 
         
     def agregar_producto(self, producto):

@@ -5,14 +5,25 @@ class Productos:
         self.precio=precio #precio de cada producto
         self.categoria=categoria #categoria a la que pertenece el producto
         self.stock=stock #cantidad disponible de inventario para el producto
-        self.eliminado=False 
+        self.disponibilidad="Disponible"#indica si se puede pedir o no
         
     def mostrar_informacion(self):#se muestra la informacion del producto
-            if self.disponible=="Disponible":
-                return f"Codigo: {self.codigo}| Nombre: {self.nombre}| Precio: {self.precio}| Categoria: {self.categoria}| Stock: {self.stock}| Disponible: {self.disponible}"
+            if self.disponibilidad=="Disponible":
+                return f"Codigo: {self.codigo}| Nombre: {self.nombre}| Precio: {self.precio}| Categoria: {self.categoria}| Stock: {self.stock}| Disponible: {self.disponibilidad}"
             else:
-                return f"Codigo: {self.codigo}| Nombre: {self.nombre}| Precio: {self.precio}| Categoria: {self.categoria}| Stock: {self.stock}| Disponible: {self.disponible}"
+                return f"Codigo: {self.codigo}| Nombre: {self.nombre}| Precio: {self.precio}| Categoria: {self.categoria}| Stock: {self.stock}| Disponible: {self.disponibilidad}"
             
+            
+    def cambiarDisponibilidad(self):#se cambia la disponibilidad de cada producto
+        if self.disponibilidad=="Disponible":
+            self.disponibilidad="No Disponible"
+        else:
+            self.disponibilidad="Disponible"    
+            
+            
+            
+            
+    
         
     def aumentar_stock(self, cantidad):#aumentar el stock del producto
         if cantidad > 0:#si la cantidad es positiva se permite aumentar el stock
