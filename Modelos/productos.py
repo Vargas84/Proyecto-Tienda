@@ -9,9 +9,13 @@ class Productos:
         
     def mostrar_informacion(self):#se muestra la informacion del producto
             if self.disponibilidad=="Disponible":
-                return f"Codigo: {self.codigo}| Nombre: {self.nombre}| Precio: {self.precio}| Categoria: {self.categoria}| Stock: {self.stock}| Disponible: {self.disponibilidad}"
+                print(f"{'Codigo':<10} | {'Nombre':<20} | {'Precio':<10} | {'Stock':<10} | {'Categoría':<15} | {"Disponibilidad":<20}")
+                print("-" * 100)
+                return f"{self.codigo:<10} | {self.nombre:<20} | {self.precio:<10} | {self.stock:<10} | {self.categoria:<15} | {self.disponibilidad:<20}"
             else:
-                return f"Codigo: {self.codigo}| Nombre: {self.nombre}| Precio: {self.precio}| Categoria: {self.categoria}| Stock: {self.stock}| Disponible: {self.disponibilidad}"
+                print(f"{'Codigo':<10} | {'Nombre':<20} | {'Precio':<10} | {'Stock':<10} | {'Categoría':<15} | {"Disponibilidad":<20}")
+                print("-" * 100)
+                return f"{self.codigo:<10} | {self.nombre:<20} | {self.precio:<10} | {self.stock:<10} | {self.categoria:<15} |  {self.disponibilidad:<20}"
             
             
     def cambiarDisponibilidad(self):#se cambia la disponibilidad de cada producto

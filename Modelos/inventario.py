@@ -23,21 +23,17 @@ class Inventario:
        return id_generador_productos#retorna este valor
   
         
-    def mostrar_inventario(self):
-        #muestra el inventario completo con el nombre del producto, su precio, categoria y stock
-        #si el inventario esta vacio muestra un mensaje
-        if not self.lista_productos:
-            print("El inventario esta vacio")
-            return #para saber que no hay naada que mostrart
-        #PRODCUTOS DEL INVENTARIO
-        print("\n--- INVENTARIO ---")
-        # Usamos f-strings para que las columnas queden alineadas
-        print(f"{'Codigo':<10} | {'Nombre':<20} | {'Precio':<10} | {'Stock':<10} | {'Categoría':<15} | {"Disponibilidad":<20}")
-        print("-" * 100)
-        for producto in self.lista_productos:
-            #<20 significa: reserca 20 espacios a la isquierda del texto
-            print(f"{producto.codigo:<10} | {producto.nombre:<20} | {producto.precio:<10} | {producto.stock:<10} | {producto.categoria:<15} | {producto.disponibilidad:<20}")  
-        return True #Retorna True porque si habia productos 
+    def mostrar_inventario(self):#se muestran los productos que hay en el inventario y su informacion
+        print('\n --- INVENTARIO ---')
+        for producto in self.lista_productos:#recorre la lista
+            if not self.lista_productos:#si no hay productos cargados en el inventario
+                print('\n'+'!'*40)
+                print('El inventario se encuentra vacio')
+                print('!'*40)
+                return 
+            print(producto.mostrar_informacion())#se muestra el producto y su informacion con ayuda
+            #del metodo mostrar_informacion() de producto con nombre/precio/categoria/disponibilidad y stock
+        print(' ')
         
     def agregar_producto(self, producto):
         #recibe un objeto de tipo producto y lo agrega a la lista de productos del inventario
