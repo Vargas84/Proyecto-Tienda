@@ -25,12 +25,14 @@ class Inventario:
         
     def mostrar_inventario(self):#se muestran los productos que hay en el inventario y su informacion
         print('\n --- INVENTARIO ---')
-        for producto in self.lista_productos:#recorre la lista
-            if not self.lista_productos:#si no hay productos cargados en el inventario
-                print('\n'+'!'*40)
-                print('El inventario se encuentra vacio')
-                print('!'*40)
-                return 
+        if not self.lista_productos:#si no hay productos cargados en el inventario
+            print('\n'+'!'*40)
+            print('El inventario se encuentra vacio')
+            print('!'*40)
+            return 
+        print(f"{'Codigo':<10} | {'Nombre':<20} | {'Precio':<10} | {'Stock':<10} | {'Categoría':<15} | {'Disponibilidad':<20}")
+        print("-" * 100)
+        for producto in self.lista_productos:
             print(producto.mostrar_informacion())#se muestra el producto y su informacion con ayuda
             #del metodo mostrar_informacion() de producto con nombre/precio/categoria/disponibilidad y stock
         print(' ')
@@ -55,7 +57,7 @@ class Inventario:
         for producto in self.lista_productos:#recorre la lista de productos uno por uno
             if producto.codigo==codigo_producto:
                 return producto#cuando encuentra un producto cuyo ID(codigo) coincide lo retorna
-            return None #Si recorre toda la lista y no encuentra nada, devuelve none
+        return None #Si recorre toda la lista y no encuentra nada, devuelve none
             #para que el que este llamando a la funcion pueda verificae y actuar con un mensaje de alerta
 
         

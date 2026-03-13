@@ -30,7 +30,7 @@ class Usuarios:
         print('Producto no encontrado')#en caso contrario lanzar un mensaje de error
 
     
-    def editar_productos(self,inventario,id_producto,nuevo_nombre=None,nuevo_precio=None,nueva_categoria=None):#funcion que ayuda al menuSistema a hacer validaciones
+    def editar_productos(self,inventario,id_producto,nuevo_nombre=None,nuevo_precio=None,nueva_categoria=None,nuevo_stock=None):#funcion que ayuda al menuSistema a hacer validaciones
     #el atrabajador puede editar el precio de los platos
         producto=inventario.buscar_producto_id(id_producto) #busca el objeto producto con el ID
         if producto is None:#si el producto no existe
@@ -43,17 +43,23 @@ class Usuarios:
               print("Error: ingrese datos correctos para nombre dese la funcion")#en caso de ingresar numeros
         if nuevo_nombre=="":#si se deja un vacio el sistema dejara el nombre que tiene sin modificarlo
             producto.nombre=producto.nombre#se asigna nuevamente el mismo nombre
-            print(f"El nombre del plato {producto.nombre} quedo igual: {producto.nombre}")#se da aviso de esta asignacion
+            print(f"El nombre del procucto {producto.nombre} quedo igual: {producto.nombre}")#se da aviso de esta asignacion
 
         if nuevo_precio is not None:#editar precio si no es nulo el valor
             producto.precio=nuevo_precio#se asigna el nuevo precio
             print(f"Precio actualizado a: {nuevo_precio}")#se da aviso de esta actualizacion 
         if nuevo_precio=="":#si el nuevo precio es vacio el sistema dejara el mismo precio que tenia
            producto.precio=producto.precio#se asigna el mismo precio
-           print(f"El precio del plato {producto.nombre} quedo igual: {producto.precio}")#se da aviso de esta asignacion
-
-
-
+           print(f"El precio del producto {producto.nombre} quedo igual: {producto.precio}")#se da aviso de esta asignacion
+           
+        if nuevo_stock is not None:#editar precio si no es nulo el valor
+            producto.stock=nuevo_stock#se asigna el nuevo stock
+            print(f'Stock actualizado a: {nuevo_stock}')#se da un aviso de esta actualizacion
+        if nuevo_stock=="":#si el nuevo stock es vacio el sistema dejara el mismo stock que tenia
+            producto.stock=producto.stock#se asigna el mismo valor
+            print(f'El stock del producto {producto.nombre} quedo igual: {producto.stock}')#se da aviso de esta asignacion
+            
+            
         if nueva_categoria is not None:#editar categoria si no es nulo el valor
             try:
                producto.categoria=nueva_categoria#se le asigna la nueva categoria

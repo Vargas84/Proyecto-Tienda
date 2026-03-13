@@ -9,12 +9,8 @@ class Productos:
         
     def mostrar_informacion(self):#se muestra la informacion del producto
             if self.disponibilidad=="Disponible":
-                print(f"{'Codigo':<10} | {'Nombre':<20} | {'Precio':<10} | {'Stock':<10} | {'Categoría':<15} | {"Disponibilidad":<20}")
-                print("-" * 100)
                 return f"{self.codigo:<10} | {self.nombre:<20} | {self.precio:<10} | {self.stock:<10} | {self.categoria:<15} | {self.disponibilidad:<20}"
             else:
-                print(f"{'Codigo':<10} | {'Nombre':<20} | {'Precio':<10} | {'Stock':<10} | {'Categoría':<15} | {"Disponibilidad":<20}")
-                print("-" * 100)
                 return f"{self.codigo:<10} | {self.nombre:<20} | {self.precio:<10} | {self.stock:<10} | {self.categoria:<15} |  {self.disponibilidad:<20}"
             
             

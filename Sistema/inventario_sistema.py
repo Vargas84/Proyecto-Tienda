@@ -480,67 +480,102 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                 
                                         if producto is None:
                                             #si no existe un producto con ese OCDIGO, informamos y volvemos al submenu
-                                            print('Plato no encontrado')
+                                            print('Producto no encontrado')
                                             continue
                                 
                                         while True:#si el plato existe entramos el menu de opciones a editar
+                                            #se debe mostrar toda la informacion del producto
+                                            print(f"\n{'Codigo':<10} | {'Nombre':<20} | {'Precio':<10} | {'Stock':<10} | {'Categoría':<15} | {'Disponibilidad':<20}")
+                                            print("-" * 100)
+                                            print(producto.mostrar_informacion())
                                             print(f'\n --- Editando: {producto.nombre} --- ')
-                                            print('1).Nombre\n2).Precio\n3).Categoria\n4).Volver al menu anterior')
+                                            print('1).Nombre\n2).Precio\n3).Stock\n4).Categoria\n5).Volver al menu anterior')
                                     
                                             try:#se pide qe opcion se desea editar
-                                                op=int(input(f'¿Que desea editar del plato {producto.nombre}?' ))#se pregunta que se desea editar del plato que ingresamos'))
+                                                op=int(input(f'¿Que desea editar del producto {producto.nombre}?: ' ))#se pregunta que se desea editar del plato que ingresamos'))
                                             except:
                                                 print('Error. Entrada invalida')#en caso de una entrada no valida vuelve al menu
+                                                continue
                                     
-                                    
-                                            if op<1 or op>4:
+                                            if op<1 or op>5:
                                                 print('Error:Opcion fuera de rango')
                                                 #continue #vuelve al menu
                                     
                                             elif op==1:#editar ell nombre
-                                                nuevo_nombre=input('Ingrese el nuevo nombre del producto: ')#se pide un nuevo nombre
-                                                if nuevo_nombre=="":#si se deja vacio el sistema dejara el nombre que tiene sin modificar
-                                                    producto.nombre=producto.nombre#se asigna nuevamente el mismo nombre
-                                                    print(f'EL nombre del producto {producto.nombre} quedo igual: {producto.nombre}')#se da aviso de que el nombre quedo igual
-                                                    break# y se rompe el ciclo para el nombre
-                                                if not es_letras_y_espacios(nuevo_nombre):#si el nombre no contiene letras se da aviso
-                                                    print('El nuevo nombre debe contenes solo letras\n')#se repite el ciclo hasta que se ingrese un nombre valido
-                                                else:
-                                                    trabajador.editar_productos(inventario,id_p,nuevo_nombre=nuevo_nombre)#si pasa las validaciones el nombre se agrega correctamente
-                                                    break #y se rompe el ciclo para nombre
+                                                while True:
+                                                    nuevo_nombre=input('Ingrese el nuevo nombre del producto: ').strip()#se pide un nuevo nombre                            
+                                                    if nuevo_nombre=="":#si se deja vacio el sistema dejara el nombre que tiene sin modificar
+                                                        producto.nombre=producto.nombre#se asigna nuevamente el mismo nombre
+                                                        print(f'EL nombre del producto {producto.nombre} quedo igual: {producto.nombre}')#se da aviso de que el nombre quedo igual
+                                                        break# y se rompe el ciclo para el nombre
+                                                    if not es_letras_y_espacios(nuevo_nombre):#si el nombre no contiene letras se da aviso
+                                                        print('El nuevo nombre debe contenes solo letrasy')#se repite el ciclo hasta que se ingrese un nombre valido
+                                                        continue
+                                                    existe=False
+                                                    for producto in inventario.lista_productos:
+                                                        if producto.nombre.lower()==nuevo_nombre.lower():
+                                                            existe=True
+                                                            break
+                                                    if existe:
+                                                        print('Ese nombre ya esta en uso. Ingrese un nombre diferente')
+                                                        continue
+                                                    else:#llega hasta aca si pasa todas las pruebas
+                                                        trabajador.editar_productos(inventario,id_p,nuevo_nombre=nuevo_nombre)#si pasa las validaciones el nombre se agrega correctamente
+                                                        break #y se rompe el ciclo para nombre
                                         
                                             elif op==2:#editar el precio
                                                 nuevo_precio=input('Ingrese el nuevo precio del producto: ')#se pide el nuevo precio del producto
+                                                if nuevo_precio=="":#si el nuevo precio es vacio se deja como estaba antes
+                                                        producto.precio=producto.precio #se hace la asignacion correspondiente
+                                                        print(f'El precio del producto {producto.nombre} quedo igual: {producto.precio}\n')#se muestra el mensaje
+                                                        continue#vuelve al menu de los atributos a editar
                                                 if  nuevo_precio.isdigit():#se verifica que el nuevo precio sea un numero
                                                     nuevo_precio=int(nuevo_precio)#si es un sigito lo convierte de str a entero
-                                           
+                                        
                                                     if nuevo_precio>0:#si este numero es mayor a 0 
                                                         trabajador.editar_productos(inventario,id_p,nuevo_precio=nuevo_precio)#el neuvo precio se agrega correctamente
-                                                        break# y se rompe el ciclo
+                                                        continue
                                             
                                                     elif nuevo_precio<=0:#en caso de que el entero sea inferior o igual a 0
                                                         print('El precio debe ser mayor a 0')
-                                                
-                                                    elif nuevo_precio=="":#si el nuevo precio es vacio se deja como estaba antes
-                                                        producto.precio=producto.precio #se hace la asignacion correspondiente
-                                                        print(f'El precio del producto {producto.nombre} quedo igual: {producto.precio}\n')#se muestra el mensaje
-                                                        break#se rompe el ciclo
-                                                    else:
-                                                        print(f'El precio debe ser un numero\n')#en caso de ingresar valores diferentes a numeros
                                                         continue
-                                    
-                                            elif op==3:#editar categoria
+                                                else:
+                                                    print(f'El precio debe ser un numero\n')#en caso de ingresar valores diferentes a numeros
+                                                    continue
+                                            
+                                            elif op==3:#editar el stock
+                                                nuevo_stock=input('Ingrese el nuevo stock del producto: ')#se pide el nuevo stock
+                                                if nuevo_stock=="":#si el nuevo stock es vacio se deja como estaba antes
+                                                    producto.stock=producto.stock#se hace la asignacion correspondiente
+                                                    print(f'El stock del producto {producto.nombre} quedo igual: {producto.stock}\n')#se muestra el mensaje
+                                                    continue#vuelve al menu de los atributos a editar
+                                                if nuevo_stock.isdigit():#se verifica que el nuevo precio sea un numero
+                                                    nuevo_stock=int(nuevo_stock)#si es un numero lo convierte a entero                
+
+                                                    if nuevo_stock>=0:#en caso de que sea mayor o igual a 0
+                                                        trabajador.editar_productos(inventario,id_p,nuevo_stock=nuevo_stock)#el nuevo stock se agrega correctamente
+                                                        continue
+                                                    
+                                                    elif nuevo_stock<0:#en caso de que sea inferior a 0 o sea numeros negativos
+                                                        print('El stock debe ser mayor o igual a 0')
+                                                        continue
+                                                else:
+                                                    print('El stock debe ser un numero')
+                                                    continue
+                                                                    
+                                            elif op==4:#editar categoria
                                                 nueva_categoria=input('Ingrese la nueva categoria del producto: ')
                                                 if nueva_categoria=="":#si la categoria esta vacia se deja como antes
                                                     print(f'La categoria del producto {producto.nombre} quedo igual: {producto.categoria}')#se muestra el mensaje
-                                                    break #se rompe el ciclo
+                                                    continue
                                                 if not es_letras_y_espacios(nueva_categoria):#se hace la validacion de que contenga letras y espacios
                                                     print('La categoria debe contener solo letras')
+                                                    continue
                                                 else:#en caso de que la validacion sea correcta
                                                     trabajador.editar_productos(inventario,id_p,nueva_categoria=nueva_categoria)#procede a cambiar el estado de la categoria
-                                                    break
+                                                    continue
                                     
-                                            elif op==4:#volver al menu anterios
+                                            elif op==5:#volver al menu anterios
                                                 break#rompe el codigo
                                                                                   
                                     elif  opcion_inventario == 4:  #ver inventario     
