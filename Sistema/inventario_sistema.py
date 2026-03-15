@@ -1,137 +1,12 @@
 from Modelos.inventario import Inventario
 from Modelos.usuarios import Usuarios
 from Modelos.productos import Productos
+from Modelos.compras import Compra
+from Modelos.detalleCompra import DetalleCompra
 from utils import es_letras_y_espacios
 
 #Creamos las instancias UNICAS del sistema
 inventario=Inventario() #instancia de la clase Inventario, que contiene la lista de productos y metodos relacionados
-"""
-    
-    print("\n--- REGISTRAR COMPRA ---")
-    productos_temporales=[]#Lista temporal para almacenar los productos que se vana  comprar
-    total_compra=0 #Variable para almacenar el total de la compra, se va actualizando a medida que se van agregando productos a la compra
-    
-    
-    
-    #Entrada de productos
-    while True:#bucle que permite varios productos
-        
-        #Validacion del nombre del producto 
-        while True:
-            
-           nombre_producto=input("Ingrese el nombre del producto a comprar: ").strip()
-        
-        #validamos que el nombre no este vacio y solo sean letras/espacios
-           if nombre_producto and  es_letras_y_espacios(nombre_producto):
-            break #si el nombre es valido, salimos del bucle de validación
-           else:
-            print("Error: El nombre del producto no puede estar vacio o contener caracteres no permitidos")
-            continue
-        
-        
-      #2 BUSCAR el producto en el inventario
-        producto_contrado=inventario.buscar_producto(nombre_producto)#buscamos el producto en el inventario por su nombre
-
-      #validacion de los datos numricos (Precio y cantidad)
-        try:
-            cantidad_comprada=int(input(f"Ingrese la cantidad a comprar del producto '{nombre_producto}': "))
-            
-            #costo lo que le pagamos al proveedor por la compra de ese prodcuto
-            costo=float(input(f"Costo unitario del producto '{nombre_producto}': "))
-            
-            #precio venta es el precio al que vamos a vender ese producto, lo usamos para calcular el total de la compra y mostrarlo al usuario, pero no lo guardamos en el inventario porque el precio del producto en el inventario se actualiza con el precio unitario de la compra
-            precio_venta=float(input(f"Precio de venta del producto '{nombre_producto}': "))
-            
-            
-            #validamos que cantidad y precios no sean negativos o cero
-            if cantidad_comprada<=0 or costo<=0 or precio_venta<=0:
-                print("Error: La cantidad y los precios deben ser mayores a cero")
-                continue
-            
-    #LOGICA de actualizacion o regisro
-        #Si el producto ya existe en el inventario 
-            if producto_contrado:
-            #actualizamos el stock del producto sumando la cantidad comprada al stock 
-              print(f"Producto '{nombre_producto}' encontrado en el inventario. Actualizando stock y precio.")
-              producto_contrado.stock+=cantidad_comprada
-            #guardamos el preico de venta en el objeto para el catalogo
-              producto_contrado.precio=precio_venta
-              producto_final=producto_contrado
-              print(f"Producto actualizado exitosamente")
-            
-        #Si el producto no existe en el inventario, se crea un nuevo producto y se agrega al inventario
-            else:
-              print(f"Producto '{nombre_producto}' no encontrado en el inventario.\nRegistrando nuevo producto.")
-            
-            #Validacion de la categoria del producto nuevo
-              while True:
-                categoria=input(f"Ingrese la categoría para {nombre_producto}: ").strip()
-                if es_letras_y_espacios(categoria) and categoria:
-                    break # Si es válida, salimos del bucle
-                print("ERROR: Categoría inválida. Solo use letras y espacios.")
-            
-           #Generamos id automatico y creamos el nuevo objeto
-              nuevo_id=inventario.generar_id_productos()
-              nuevo_producto=Productos(nuevo_id,nombre_producto,precio_venta,categoria,cantidad_comprada)
-        #Lo agregamos a la lista de prodcutos del inventrio 
-              inventario.agregar_productos(producto_final)
-              print(f"Producto nuevo {producto_final.nombre} registrado exitosamente")
-
-        #Guardamos temporalmente
-            productos_temporales.append((producto_final,cantidad_comprada,costo))
-        except ValueError:
-            print(f"Eror: Ingrese solo numeros validos (Enteros para cantidad, decimales para precios)")
-            continue
-        #Preguntar para agregar mas productos
-        opcion=input("\nDesea agregar mas productosa esta misma factura de compra? (s/n)").lower().strip()
-        
-        if opcion!='s':#si la opcion es diferente de s el codigo pasa al apartado de factura dando a entender que no desea agregar mas prodcutos
-            break
-    
-    
-    #Si no hay productos
-    if not productos_temporales:
-        print("No se procesaron los productos")
-        return
-    
-    
-    #DATOS Del provedor
-    documento_proveedor=input("NIT del proveedor: ").strip()
-    proveedor_objeto=inventario.buscar_proveedor_documento(documento_proveedor)
-    
-    if not proveedor_objeto:
-        while True:
-            nombre_proveedor=input("Nombre de la empresa o proveedor: ").strip()
-            if nombre_proveedor and es_letras_y_espacios(nombre_proveedor):
-                break
-            print("Nombre invalido")
-            
-        while True:
-            telefono = input("Teléfono: ").strip()
-            if telefono.isdigit() and len(telefono) >= 7:
-                break
-            print("Teléfono inválido")
-
-        proveedor_objeto = Proveedor(nombre_proveedor, documento_proveedor, telefono)
-        inventario.lista_proveedores.append(proveedor_objeto)
-        
-        
-        
-    #Crear obejto compra
-    id_compra=inventario.generar_id_compra()
-    compra= Compra(id_compra,proveedor_objeto)
-    
-    #agregar productos a la compra
-    for producto,cantidad,costo in productos_temporales:
-        compra.agregar_productos(producto,cantidad,costo)
-        
-    #guardar compra en inventario
-    inventario.lista_compras.append(compra)
-    
-    #Mostrar factura
-    compra.mostrar_factura()
-    print("Compra registrada exitosamente")
-"""
 
 
 #------------- MENU PRINCIPAL ---------------
@@ -368,7 +243,7 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                     #Solicitamos detalles del producto al usuario
                                     #validacion del nombre del prodcuto
                                         while True:
-                                            nombre=input("Nombre del producto: ").strip()#nombre del plato a registrar
+                                            nombre=input("Nombre del producto: ").strip().replace(" ","")#nombre del plato a registrar
                                         
                                             if not nombre:#en caso de nombre vacio
                                                 print('Este campo es obligatorio. Ingrese un nombre')
@@ -380,7 +255,7 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                             #si el nombre no es vacio y contiene las letras
                                             existe=False
                                             for producto in inventario.lista_productos:#buscar  que no hayan nombre repetidos
-                                                if producto.nombre.lower()==nombre.lower():
+                                                if producto.nombre.replace(" ","").lower()==nombre.lower():
                                                     existe=True
                                                     break
                                             if existe:
@@ -522,7 +397,7 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                                             continue
                                                         existe=False
                                                         for producto in inventario.lista_productos:
-                                                            if producto.nombre.lower()==nuevo_nombre.lower():
+                                                            if producto.nombre.lower().replace(" ","")==nuevo_nombre.lower().replace(" ",""):
                                                                 existe=True
                                                                 break
                                                         if existe:
@@ -594,12 +469,379 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                         print('Regresando al menu anterior....')
                                         break
                                        
-                            elif opcion_gestion == 2:
-                            # Aquí llamaríamos a la función que maneja las ventas, pasando 'usuario' e 'inventario'.
-                                pass  # Reemplaza con la llamada a tu función de gestión de ventas
+                            elif opcion_gestion == 2: #REGISTRAR COMPRAS DEL LOCAL
+                            # Aquí llamaríamos a la función que maneja las compras, pasando 'usuario' e 'inventario'.
+                            #COMPRAS ENTRADAS DE PRODUCTOS POR PARTE DE LOS PROVEEDORES
+                              while True:
+                                print('\n === REGISTRAR COMPRAS ===')#menu de compras
+                                print(f'Bienvenido usuario {usuario_autenticado.nombre}')#usuario que usa el sistema
+                                print('1)Registrar compras de productos')#registrar compras en las facturas
+                                print('2)Ver facturas de compras')#permite ver todas facturas creadas
+                                print('3)Volver al menu anterior')#regresa al menu anterior a esteKT
+                                
+                                try:
+                                    op_compras=int(input('Ingrese una opcion a ejecutar: '))#opciones del menu de compras
+                                except:
+                                    print('Ingrese un numero valido')#en caso de ingresar letras
+                                    continue#volver a pedir una opcion
+                                
+                                if op_compras<1 or op_compras>3:#en caso de poner numeros mas grandes o menores a 0
+                                    print('Opcion fuera de rango')
+                                    continue#volver a pedir una opcion
+                                
+                                elif op_compras==1:#registrar compras/generar facturas de compras
+                                    id_compra=inventario.generar_id_compra()#generar el id de cada factura de compra
+                                    factura=Compra(id_compra) #crear el objeto de compra (factura)
+                                    confirmada=False 
+                                    while True:                                        
+                                        #facturas individuales cada una de las facturas
+                                        print(f'\n=== FACTURA DE COMPRA {id_compra}===')#aca se muestra el numero de la factura a la que le vamos añadir productos
+                                        print('1)Agregar productos a la compra')#añadir productos a la factura (ya sea productos nuevos o productos en el inventario)
+                                        
+                                        #vizualizar cada uno de los productos que hay hasta el momento en esta factura
+                                        #se vizualiza con los atributos de la clase detalleCompra (nombre,cantidad a comprar,precio de compra,precio a la venta,total de este producto)
+                                        print('2)Ver productos de la compra')
+                                        
+                                        #aca se confirman los productos de la factura(compra) y se piden los datos del provedor 
+                                        #tambien se preguntan si se quiere editar la factura, los datos del proveedor o eliminar alguna informacion
+                                        #tambien se advierte que una vez confirmada no se puede editar ni eliminar 
+                                        print('3)Confirmar compra')
+                                        
+                                        #aca se cancela la factura(compra) totalmente tenga o no tenga productos,no se efectua el ID de esa factura y se deja libre 
+                                        #para que se pueda usar en la siguiente factura
+                                        print('4)Cancelar compra')
+                                        
+                                        try:
+                                            opcion_factura=int(input('Ingrese una opcion: '))#opcion de lo que queremos hacer en el menu interno de cada factura
+                                        except:
+                                            print('Ingrese un opcion valida\n')#en caso de ingresar letras
+                                            continue#regresa a pedir la opcion
+                                        
+                                        if opcion_factura<1 or opcion_factura>4:#en caso de ingresar numeros superiores o inferiores a las opciones
+                                            print('opcion fuera de rango')
+                                            continue#vuelve a pedir la opcion
+                                        
+                                        
+                                        elif opcion_factura==1: #aca empieza a agregar productos a la factura de compra
+                                           
+                                            producto_buscar=input('\nIngrese el nombre del producto: ').strip()#pedimos el nombre del producto a comprar
+                                        
+                                            if not producto_buscar:#si se agrega un nombre vacio 
+                                                print('Este campo es obligatorio. Ingrese un nombre')#se lanza un mensaje de que el nombre es obligatorio
+                                                continue#y vuelve a pedirlo
+                                            if not es_letras_y_espacios(producto_buscar):#verificacion de los datos para nombre del producto
+                                                print('Error: Ingrese unicamente letras')#enc caso de ingresar numeros y caracteres especiales
+                                                continue#volvemso al inicio
+                                            
+                                            #apartado para verificar los productos duplicados en la misma factura
+                                            encontrado_en_factura= False #bandera para verificar si hay duplicados
+                                            for detalle in factura.lista_detalles:#recorrer la lista donde se guardaran los productos de cada factura(compra)
+                                                
+                                                #se guarda cada detalle(producto) guardado en la factura(compra)
+                                                nombre_actual = detalle.producto.nombre.lower().replace(" ", "")
+                                                nombre_nuevo = producto_buscar.lower().replace(" ", "")#el nombre del producto que nosotros estamos comrprando se guarda
+                                                #en esta variable
+    
+                                                if nombre_actual == nombre_nuevo:#se compara ambas varibales para verificar duplicados
+                                                    encontrado_en_factura= True #si encunetra duplicados activa la bandera como positiva
+                                                    break#deja de buscar porque ya encontro
+
+                                            if encontrado_en_factura:#si encuentra que se esta intentado agregar un producto previamente ya agregado a la factura
+                                                print(f"\n{producto_buscar} ya está en la factura.No se permiten productos duplicados")#lanza la advertencia  de que el producto ya esta en esa factura y no se permite duplicados
+                                                continue#regresa al menu de la factura
+                                            
+                                            
+                                            #BUSCAR SI EL PRODUCTO YA ESTA EN EL INVENTARIO (o sea si ya esta previamente registrado)
+                                            
+                                            #producto_encontrado sera la variable para agregar productos a la factura(compra)
+                                            #sea nuevo o no nuevo el producto
+                                            producto_encontrado=None#no se sabe si existe entonces se deja en None (vacio)
+                                            for producto in inventario.lista_productos:#recorre todos los productos del inventario
+                                            #si algun nombre que este registrado en el inventario sin importar espacios o mayusculas/minusculas
+                                            #coincide con el producto que estamos ingresado sin importar espacios/mayusculas/minusculas
+                                                if producto.nombre.lower().replace(" ","")==producto_buscar.lower().replace(" ",""):
+                                                    producto_encontrado=producto#si lo encuentra la vandera que estaba en None pasa a ser ese producto encontrado en
+                                                    #inventario
+                                                    break#deja de buscar porque ya lo encontro
+                                                
+                                            if producto_encontrado:#si el producto ya se encuentra previamente registrado
+                                                #solo tendremos que pedir los atributos de la clase detalleCompra 
+                                                # objeto producto(el que encontramos),cantidad a comprar de ese producto,precio al cual compramos ese prodcuto
+                                                #precio al cual vamos a vender ese producto 
+                                                #si la factura(compra) de estos productos (o sea ya previamente registrados en inventario) se confirma
+                                                #la cantidad comprada y el previo a la venta se deben actualizar en el inventario
+                                                print(f'\nProducto "{producto_encontrado.nombre}" encontrado en inventario.')#se lanza un mensaje de que se encontro
+                                                #el producto en el inventario y tambien se muestra la cantidad actual y el precio a la venta por lo mencionado anteriormente
+                                                es_nuevo = False  #se crea una bandera para identificar que el producto no es nuevo                                          
+                                            
+                                                
+                                                
+                                                #aqui solo se piden los atributos de la clase detalleCompra
+                                                #el objeto producto ya lo tenemos porque lo encontramos
+                                                
+                                                while True:#atributo cantidad de la clase detalleCompra
+                                                    #cantidad a comprar del producto
+                                                    #en caso de confirmarse el producto esto debe sumar al stock y actualizarse en el inventario
+                                                    cantidad_comprar=input(f'Ingrese la cantidad a comprar de {producto_encontrado.nombre}: ')
+                                                    
+                                                    if not cantidad_comprar:#en caso de que sea una cantidad vacia
+                                                        print('Este campo es obligatorio.')
+                                                        continue#reinicia el bucle
+                                                    if not cantidad_comprar.isnumeric():#en caso de que no contenga numero
+                                                        print('Ingrese unicamente numeros')
+                                                        continue
+                                                    
+                                                    cantidad_comprar=int(cantidad_comprar)
+                                                    if cantidad_comprar<=0:
+                                                        print('Ingresa una cantidad mayor a 0 ')
+                                                        continue#reinicia el while
+                                                    
+                                                    break#solo llega aca si la cantidad pasa todas las pruebas
+                                                
+                                                
+                                                while True:
+                                                    #precio unitario de compra atributo de la clse detalleCompra
+                                                    precio_compra=input(f"Precio de compra del producto {producto_buscar}: ").strip()
+                                                    if not precio_compra:#precio vacio 
+                                                        print("Este campo es obligatorio. Ingrese un precio")#mensaje de advertencia
+                                                        continue#vuelve a pedir el precio
+                                    
+                                                    if not precio_compra.isdigit():
+                                                        print('Ingrese un precio numerico sin espacios ni puntos ni comas')
+                                                        continue#vuelve a pedir el precio
+                                                    #si el precio no es vacio
+                                                    precio_compra=float(precio_compra)#intentar pasarlo a numero flotante
+                                                    if precio_compra<=0:#si el precio es inferior o igual a 0 
+                                                        print('Precio incorrecto, ingrese un precio mayor a 0')
+                                                        continue#vuelve al while
+                                                    else:#si llego aqui el precio es totalmente correcto
+                                                        break
+
+                                                
+                                                while True: #precio de venta al publico atributo de la clase detalleCompra
+                                                    #en caso de confirmarse el producto esto debe actualizarse en el inventario
+                                                    precio_venta=input("Precio a la venta del producto: ").strip()
+                                                    if not precio_venta:#precio vacio 
+                                                        print("Este campo es obligatorio. Ingrese un precio")#mensaje de advertencia
+                                                        continue#vuelve a pedir el precio
+                                    
+                                                    if not precio_venta.isdigit():
+                                                        print('Ingrese un precio numerico sin espacios ni puntos ni comas')
+                                                        continue#vuelve a pedir el precio
+                                                    #si el precio no es vacio
+                                                    precio_venta=float(precio_venta)#intentar pasarlo a numero flotante
+                                                    if precio_venta<=0:#si el precio es inferior o igual a 0 
+                                                        print('Precio incorrecto, ingrese un precio mayor a 0')
+                                                        continue#vuelve al while
+                                                    else:#si llego aqui el precio es totalmente correcto
+                                                        break
+                                                
+
+                                            # en caso de que el producto no exista o no este previamente registrado en el inventario
+                                            else:
+                                                #se lanza un mensaje de que el producto se registrara totalmente nuevo
+                                                print(f'\nEl producto {producto_buscar} no existe en el inventario. Se registrará uno nuevo.')
+
+                                                    #empezamos a pedir los datos para crear un producto nuevo
+                                                    
+                                                    #el nombre del producto sera el mismo que registramos al principio
+                                                    
+                                                    #validamos la categoria (que vendria siendo un atributo de cada producto como se ve en la creacion)
+                                                while True:#Validacion de la categoria del produto
+                                                    categoria=input(f"Categoria del producto {producto_buscar}: ").strip()
+                                                    #La función 'es_letras_y_espacios' verifica que el nombre contenga solo letras y espacios, y que no esté vacío.
+                                                    if  not categoria:#en caso de categoria vacia
+                                                        print('Este campo es obligatorio. Ingrese una categoria')
+                                                        continue#vuelve a pedir la categoria
+                                                    if not es_letras_y_espacios(categoria):#se verifica que no contenga ni numeros ni caracteres especiales
+                                                        print('Error: Categoria invalida. Ingrese unicamente letras y espacios')
+                                                        continue#reinicia el bucle
+                                                    break#si las validaciones son correctas
+                                                
+                                                
+                                                #ahora ponemos los atributos del objeto detalleCompra
+                                                while True:
+                                                    #cantidad a comprar del producto
+                                                    cantidad_comprar=input(f'Ingrese la cantidad a comprar de {producto_buscar}: ')
+                                                    
+                                                    if not cantidad_comprar:#en caso de que sea una cantidad vacia
+                                                        print('Este campo es obligatorio.')
+                                                        continue#reinicia el bucle
+                                                    if not cantidad_comprar.isnumeric():#en caso de que no contenga numero
+                                                        print('Ingrese unicamente numeros')
+                                                        continue
+                                                    
+                                                    cantidad_comprar=int(cantidad_comprar)
+                                                    if cantidad_comprar<=0:
+                                                        print('Ingresa una cantidad mayor a 0 ')
+                                                        continue#reinicia el while
+                                                    
+                                                    break#solo llega aca si la cantidad pasa todas las pruebas
+                                                
+                                                
+                                                while True:
+                                                    #precio unitario de compra
+                                                    precio_compra=input(f"Precio de compra del producto {producto_buscar}: ").strip()
+                                                    if not precio_compra:#precio vacio 
+                                                        print("Este campo es obligatorio. Ingrese un precio")#mensaje de advertencia
+                                                        continue#vuelve a pedir el precio
+                                    
+                                                    if not precio_compra.isdigit():
+                                                        print('Ingrese un precio numerico sin espacios ni puntos ni comas')
+                                                        continue#vuelve a pedir el precio
+                                                    #si el precio no es vacio
+                                                    precio_compra=float(precio_compra)#intentar pasarlo a numero flotante
+                                                    if precio_compra<=0:#si el precio es inferior o igual a 0 
+                                                        print('Precio incorrecto, ingrese un precio mayor a 0')
+                                                        continue#vuelve al while
+                                                    else:#si llego aqui el precio es totalmente correcto
+                                                        break
+
+                                                
+                                                while True: #precio de venta al publico
+                                                    precio_venta=input("Precio a la venta del producto: ").strip()
+                                                    if not precio_venta:#precio vacio 
+                                                        print("Este campo es obligatorio. Ingrese un precio")#mensaje de advertencia
+                                                        continue#vuelve a pedir el precio
+                                    
+                                                    if not precio_venta.isdigit():
+                                                        print('Ingrese un precio numerico sin espacios ni puntos ni comas')
+                                                        continue#vuelve a pedir el precio
+                                                    #si el precio no es vacio
+                                                    precio_venta=float(precio_venta)#intentar pasarlo a numero flotante
+                                                    if precio_venta<=0:#si el precio es inferior o igual a 0 
+                                                        print('Precio incorrecto, ingrese un precio mayor a 0')
+                                                        continue#vuelve al while
+                                                    else:#si llego aqui el precio es totalmente correcto
+                                                        break
+                                                
+                                                     
+                                                
+                                                #creamos el nuevo producto (temporal) sin agregarlo a inventario aun 
+                                                id_nuevo_producto=inventario.generar_id_productos()#generador de Ids para los productos creados
+                                                #objeto de tipo producto (se agrefa el ID generado,el nombre pues es el mismo que ingremos al principio
+                                                # precio=0 por ahora,)
+                                                #producto encontrado sera el nuevo producto(agregado temporalmente a la factura)
+                                                producto_encontrado=Productos(id_nuevo_producto,producto_buscar,0,categoria,0)#
+                                                es_nuevo=True
+                                            
+                                            
+                                            #######################
+                                            # crear el detalle(producto) y se agrega a la factura(compra)
+                                            
+                                            #objeto de tipo detalleCompra donde se crearan las facturas(compras) con los productos
+                                            #producto encontrado 
+                                            detalle = DetalleCompra(producto_encontrado, cantidad_comprar, precio_compra, precio_venta)
+                                            # le agregamos un atributo extra al objeto detalle llamado es_nuevo
+                                            # es_nuevo es True si el producto no existia en inventario y False si ya existia
+                                            # esto lo necesitamos despues al confirmar para saber que hacer con cada producto:
+                                            # - si es_nuevo=True → agregar el producto al inventario
+                                            # - si es_nuevo=False → solo sumarle stock y actualizar precio de venta
+                                            detalle.es_nuevo = es_nuevo
+                                            
+                                            
+                                            # agregar_detalle es un metodo de la clase Compra
+                                            # lo que hace es meter este detalle dentro de factura.lista_detalles
+                                            # es como escribir una fila nueva en la factura
+                                            # despues de esto len(factura.lista_detalles) aumenta en 1
+                                            factura.agregar_detalle(detalle)
+                                            
+                                            # mensaje de confirmacion visual para el usuario
+                                            # usa el nombre del producto y el ID de la factura actual
+                                            print(f'\n✓ "{producto_encontrado.nombre}" agregado a la factura {id_compra}.')       
+                                            continue
+                                        # continue vuelve al inicio del while True
+                                        # esto hace que se muestre nuevamente el menu:
+                                        # 1) Agregar productos a la compra
+                                        # 2) Confirmar compra
+                                        # 3) Cancelar compra
+                                               
+                                                
+                                                
+                                        #VER PRODUCTOS REGISTRADOS EN LA FACTURA
+                                        elif opcion_factura==2:
+                                            if len(factura.lista_detalles)==0:#se verifica que hayan productos en la factura
+                                                print('\nNo hay productos registrados en esta compra')#si no hay productos se lanza un mensaje
+                                                continue #regresa al menu anterior
+                                            
+                                                
+                                            
+                                            #encabezado de la tabla
+                                            print(f'\n=== PRODUCTOS EN LA FACTUA {id_compra} ===')# se muestra en que factura estamos
+                                            # las f-strings con :<N alinean el texto a la izquierda ocupando N caracteres
+                                            # esto hace que todas las columnas queden alineadas visualmente
+                                            print(f'{"#":<5} {"Nombre":<20} {"Tipo":<25} {"Cantidad":<12} {"P.Compra":<12} {"P.Venta":<12} {"Total"}')
+                                            print('-'*110)#linea separadora de 100 guiones
+                                            
+                                            # recorremos cada detalle(producto) de la factura y mostramos sus datos
+                                             # acumulador del total general de la factura
+                                             #empieza en 0 y aumenta conforme va recorriendo cada detalle(producto de la factura)
+                                            total_factura = 0 
+                                            
+                                            # enumerate recorre la lista y nos da dos cosas a la vez:
+                                            # i = el numero de fila (empieza en 1 gracias al segundo parametro)
+                                            # detalle = el objeto DetalleCompra de esa posicion
+                                            for i, detalle in enumerate(factura.lista_detalles, 1):#el 1 es le segundo parametro que hace que i empiece en 1
+                                                
+                                                # detalle.subtotal ya viene calculado desde la clase DetalleCompra
+                                                # se calculo automaticamente cuando se creo el objeto: cantidad_compra * precio_compra
+                                                # entonces no necesitamos calcularlo aqui, solo sumarlo al total
+                                                total_factura += detalle.subtotal
+                                                
+                                                
+                                                #en las banderas de agregar producto, esta funcion determina si un producto fue registrado nuevo(True)
+                                                # o si ya existia antes en el inventario(False)
+                                                if detalle.es_nuevo:#si el producto es nuevo
+                                                    tipo="Producto nuevo"#se marca el tipo de producto como nuevo
+                                                else:#de lo contrario si el producto ya se encontraba en el inventario
+                                                    tipo="Producto de Inventario"#se marca como producto proveniente de inventario
+        
+                                                    # mostramos cada columna de la fila con el mismo formato de alineacion
+                                                    # detalle.producto.nombre  → accedemos al objeto Producto dentro del DetalleCompra
+                                                    # tipo hace referecencia a que tipo de producto es si estaba en inventario o es nuevo
+                                                    # detalle.cantidad_compra  → cuantas unidades se compraron
+                                                    # detalle.precio_compra    → precio al que se le compro al proveedor
+                                                    # detalle.precio_venta_nuevo → precio al que se va a vender al publico
+                                                    # detalle.subtotal         → total de ese producto (cantidad * precio_compra)
+                                                print(f'{i:<5} {detalle.producto.nombre:<20} {tipo:<25} {detalle.cantidad_compra:<12} {detalle.precio_compra:<12} {detalle.precio_venta_nuevo:<12} ${detalle.subtotal}')
+
+                                            print('-' * 110)#linea separadora final
+                                            
+                                                # mostramos el total general de toda la factura
+                                                # :<91 empuja el texto "TOTAL COMPRA:" hacia la izquierda para que el valor
+                                                # quede alineado con la columna Total de arriba
+                                            print(f'{"TOTAL COMPRA:":<91} ${total_factura}')
+                                            continue   
+                                        
+                                        
+                                        #CONFIRMAR COMPRA
+                                        elif opcion_factura==3:
+                                            pass        
+                                                
+    
+                                                
+
+                                                
+                                        elif opcion_factura==4:
+                                            inventario.liberar_id_compra()
+                                            print('Compra cancelada.')
+                                            break
+                                        break
+
+                                            
+                
+                
+                
+                                elif op_compras==2:
+                                    pass 
+                                #se muestran todas las facturas que se hayan creado
+                                elif op_compras==3:#volver al menu anterior
+                                    break
+                            
+                        
                             elif opcion_gestion == 3:
-                                # Aquí llamaríamos a la función que maneja las compras, pasando 'usuario' e 'inventario'.
-                                pass  # Reemplaza con la llamada a tu función de gestión de compras
+                                # Aquí llamaríamos a la función que maneja las ventas, pasando 'usuario' e 'inventario'.
+                                pass  # Reemplaza con la llamada a tu función de gestión de ventas
                             elif opcion_gestion == 4:
                                 print(f"¡Hasta luego, {usuario_autenticado.nombre}!")
                                 break

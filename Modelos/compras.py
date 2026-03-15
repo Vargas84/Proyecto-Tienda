@@ -3,59 +3,36 @@ from datetime import datetime
 #Importamos la clase DetalleCompra
 #Esta clase representa cada producto individual dentro de una compra
 from Modelos.productos import Productos
+from Modelos.proveedores import Proveedor
 
-#La clase compra representa una transaccion de entrada de productos
-#Es decir, cuando llegan productos de proveedores
 class Compra:
-    #Constructor:Se ejecuta cuando se crea una nueva compra
-    def __init__(self,codigo_compra,proveedor):
-        self.codigo_compra=codigo_compra #identificador unico de la compra
-        self.fecha=datetime.now()#fecha automatica en el momento de crear la compra
-        self.total=0#total acumulado de la compra
-        self.proveedor=proveedor #objeto proveedor
-        self.productos_comprados=[]#lista vacia al iinicio
+    #esta clase representa la factura completa
+    #actua como organizador antes de enviar los productos al inventario definitivo
+    def __init__(self, id_factura):
+        self.id_factura = id_factura#identificador unico de esta factura
         
-    def agregar_productos(self,producto,cantidad,costo_unitario):
-        subtotal=cantidad*costo_unitario
-        detalle={
-            "Producto":producto, #objeto producto
-            "Cantidad": cantidad,
-            "Costo Unitario": costo_unitario,
-            "Subtotal":subtotal
-        }
+        # 2. Objeto Proveedor:
+        # Se deja en None al inicio y se llena cuando registras el proveedor.
+        # Guardar el objeto permite acceder a self.proveedor.nombre, etc.
+        self.proveedor = None      # Objeto Proveedor
         
-        self.productos_comprados.append(detalle)
-        self.total+=subtotal
+        # Aquí se guardan todos los objetos 'DetalleCompra' que el usuario ingresa.
+        # Es una lista de objetos, no de diccionarios.
+        self.lista_detalles = []   # Lista de objetos 'DetalleCompra'
         
-    def mostrar_factura(self):
-        print("Factura de compra".center(60))
-        print("*" * 60)
-        print(f"Codigo de compra: {self.codigo_compra}")
-        print(f"Proveedor: {self.proveedor.nombre_empresa}")
-        print(f"Fecha: {self.fecha.strftime('%d/%m/%Y %H:%M')}")
-        print("-" * 60)
-        print(f"{'PRODUCTO':<20} {'CANT':<6} {'COSTO':<10} {'SUBTOTAL':<10}")
+        #incia en 0 y crece cada vez que agregas un producto nuevo
+        self.total_factura = 0
+
+    def agregar_detalle(self, detalle_obj):
+        #esta funcion hace dos cosas al mismo tiempo
+        #g1 guardar el detalle en la lista de la factura
+        self.lista_detalles.append(detalle_obj)
         
-        for producto in self.productos_comprados:
-            print(
-                f"{producto['producto'].nombre:<20} "
-                f"{producto['cantidad']:<6} "
-                f"${producto['costo_unitario']:<9} "
-                f"${producto['subtotal']:<10}"
-            )
-            
-        print("-" * 60)
-        print(f"TOTAL PAGADO: ${self.total}")
-        print("*" * 60)
-            
+        #2 suma el subtotal de cada detalle de compra a la de la factura
+        self.total_factura += detalle_obj.subtotal
         
         
-        
-        
-        
-        
-        
-        
+    
         
         
         

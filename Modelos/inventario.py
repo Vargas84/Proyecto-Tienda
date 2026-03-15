@@ -15,7 +15,13 @@ class Inventario:
         id_generador_compras=self.compras_id
         self.compras_id+=1
         return id_generador_compras
-        
+    
+    def liberar_id_compra(self):
+    # Si el ID fue generado pero nunca se usó (factura cancelada sin productos),
+    # simplemente restamos 1 al contador para "devolver" ese ID
+    # y que el próximo generar_id_compra() vuelva a dar el mismo número
+        if self.compras_id > 0:  # nos aseguramos de nunca bajar de 0
+            self.compras_id -= 1
             
     def generar_id_productos(self):#generador de IDs para los platos
        id_generador_productos=self.productos_id#el id generado es igual al valor actual del id
