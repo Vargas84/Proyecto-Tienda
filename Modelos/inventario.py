@@ -6,6 +6,7 @@ class Inventario:
     def __init__(self):
         self.lista_productos = []#lista donde se almacenan toods los platos,inicialmente vacia
         self.lista_proveedores=[] #lista donde se almacenan todos los proveedores, inicialmente vacia
+        self.lista_compras = []  #lista que  guardan las facturas confirmadas
         self.productos_id=1 #contador de Codigos o IDs para productos, inicia en 1
         #y se incrementa cada vez que se agrega un nuevo producto al inventario
         self.usuarios_registrados=[]#Aqui guardaremos los objetos de tipo Usuarios

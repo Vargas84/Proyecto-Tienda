@@ -23,6 +23,13 @@ class Compra:
         #incia en 0 y crece cada vez que agregas un producto nuevo
         self.total_factura = 0
 
+        self.factura_confirmada = False  #  inicia en False y cambia a True al confirmarse la compra
+
+
+        self.fecha_hora=None #empieza en None y se llena al confirmar la compra
+
+
+
     def agregar_detalle(self, detalle_obj):
         #esta funcion hace dos cosas al mismo tiempo
         #g1 guardar el detalle en la lista de la factura
