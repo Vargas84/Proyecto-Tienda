@@ -10,7 +10,13 @@ class Inventario:
         #y se incrementa cada vez que se agrega un nuevo producto al inventario
         self.usuarios_registrados=[]#Aqui guardaremos los objetos de tipo Usuarios
         self.compras_id=1
+        self.detalle_id=1#contador de codigos o IDs para detaller(productos dentro de una factura)
     
+    def generar_id_detalle(self):#generador de IDs para cada detalle de la factura
+        id_generador_detalle=self.detalle_id
+        self.detalle_id+=1
+        return id_generador_detalle
+        
     def generar_id_compra(self):
         id_generador_compras=self.compras_id
         self.compras_id+=1

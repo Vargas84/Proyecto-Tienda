@@ -7,7 +7,8 @@ class DetalleCompra:
     Esta clase guarda la información de lo que quieres comprar
     sin afectar el objeto Producto original todavía.
     """
-    def __init__(self, objeto_producto, cantidad_compra, precio_compra, precio_venta_nuevo):
+    def __init__(self, id_detalle,objeto_producto, cantidad_compra, precio_compra, precio_venta_nuevo):
+        self.id_detalle=id_detalle#idetificador unico de este detalle
         self.producto = objeto_producto      # Referencia al objeto Producto (real o nuevo)
         #estos atributos son unicos en esta factura. No se guardan en el producto permamente hasta que
         #el usuario confirme
