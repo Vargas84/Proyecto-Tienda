@@ -397,15 +397,14 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                                     while True:
                                                         nuevo_nombre=input('Ingrese el nuevo nombre del producto: ').strip()#se pide un nuevo nombre                            
                                                         if nuevo_nombre=="":#si se deja vacio el sistema dejara el nombre que tiene sin modificar
-                                                            producto.nombre=producto.nombre#se asigna nuevamente el mismo nombre
                                                             print(f'EL nombre del producto {producto.nombre} quedo igual: {producto.nombre}')#se da aviso de que el nombre quedo igual
                                                             break# y se rompe el ciclo para el nombre
                                                         if not es_letras_y_espacios(nuevo_nombre):#si el nombre no contiene letras se da aviso
                                                             print('El nuevo nombre debe contenes solo letrasy')#se repite el ciclo hasta que se ingrese un nombre valido
                                                             continue
                                                         existe=False
-                                                        for producto in inventario.lista_productos:
-                                                            if producto.nombre.lower().replace(" ","")==nuevo_nombre.lower().replace(" ",""):
+                                                        for p in inventario.lista_productos: #p -> producto
+                                                            if p.nombre.lower().replace(" ","")==nuevo_nombre.lower().replace(" ",""):
                                                                 existe=True
                                                                 break
                                                         if existe:
@@ -418,7 +417,6 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                                 elif op==2:#editar el precio
                                                     nuevo_precio=input('Ingrese el nuevo precio del producto: ')#se pide el nuevo precio del producto
                                                     if nuevo_precio=="":#si el nuevo precio es vacio se deja como estaba antes
-                                                        producto.precio=producto.precio #se hace la asignacion correspondiente
                                                         print(f'El precio del producto {producto.nombre} quedo igual: {producto.precio}\n')#se muestra el mensaje
                                                         continue#vuelve al menu de los atributos a editar
                                                     if  nuevo_precio.isdigit():#se verifica que el nuevo precio sea un numero
@@ -438,7 +436,6 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                                 elif op==3:#editar el stock
                                                     nuevo_stock=input('Ingrese el nuevo stock del producto: ')#se pide el nuevo stock
                                                     if nuevo_stock=="":#si el nuevo stock es vacio se deja como estaba antes
-                                                        producto.stock=producto.stock#se hace la asignacion correspondiente
                                                         print(f'El stock del producto {producto.nombre} quedo igual: {producto.stock}\n')#se muestra el mensaje
                                                         continue#vuelve al menu de los atributos a editar
                                                     if nuevo_stock.isdigit():#se verifica que el nuevo precio sea un numero
@@ -503,6 +500,8 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                     confirmada=False 
                                     factura_cancelada=False
                                     factura_confirmada=False
+                                    inventario.detalle_id=1 #se inicia el id de cada detalle en 1 para que siempre que se cree un nuevo de talle en las facturas
+                                    #inicien en 1
                                     while True:                                        
                                         #facturas individuales cada una de las facturas
                                         print(f'\n=== FACTURA DE COMPRA {id_compra}===')#aca se muestra el numero de la factura a la que le vamos añadir productos
@@ -1145,12 +1144,12 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                                                     
                                                                     while True:#validaciones para el nuevo nombre
                                                                         nuevo_nombre = input(f'Nuevo nombre de [{detalle_editar.producto.nombre}]: ').strip()
+                                                                        if nuevo_nombre=="":#si se deja vacio el sistema dejara el nombre que tiene sin modificar
+                                                                            print(f'EL nombre del producto [{detalle_editar.producto.nombre}] quedo igual: {detalle_editar.producto.nombre}')#se da aviso de que el nombre quedo igual
+                                                                            break# y se rompe el ciclo para el nombre
                                                                         if not es_letras_y_espacios(nuevo_nombre):
                                                                             print('Solo letras y espacios.')
                                                                             continue#se vuelve a ingresar el nombre
-                                                                        if nuevo_nombre=="":#si se deja vacio el sistema dejara el nombre que tiene sin modificar
-                                                                            print(f'EL nombre del producto [{detalle_editar.producto.nombre}] quedo igual: {producto.nombre}')#se da aviso de que el nombre quedo igual
-                                                                            break# y se rompe el ciclo para el nombre
                                                                         
                                                                         #se hace la actualizacion del nombre
                                                                         detalle_editar.producto.nombre = nuevo_nombre
@@ -1651,6 +1650,12 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                                    
                                 elif op_compras==2:
                                 #se muestran todas las facturas que se hayan creado
+                                                                            # verificamos que haya facturas guardadas
+                                    if len(inventario.lista_compras) == 0:
+                                        print('\nNo hay facturas registradas.')
+                                        break
+                                        
+                                        
                                     while True:#menu para buscar las facturas
                                         print('\n=== VER FACTURAS DE COMPRAS ===')
                                         print('1) Buscar facturas por mes y año')
@@ -1672,7 +1677,6 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                             # verificamos que haya facturas guardadas
                                             if len(inventario.lista_compras) == 0:
                                                 print('\nNo hay facturas registradas.')
-                                                continue#se deveuelve al menu en caso de que sea vacio
 
                                             # en caso contrario pedimos el mes
                                             while True:
@@ -1775,7 +1779,6 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                             # verificamos que haya facturas guardadas
                                             if len(inventario.lista_compras) == 0:
                                                 print('\nNo hay facturas registradas.')
-                                                continue #regresa nuevamente sin hacer nada
 
                                             #de lo contraio si hay facturas guardadas las muestra todas
                                             print(f'\n=== TODAS LAS FACTURAS DE COMPRAS ===')
