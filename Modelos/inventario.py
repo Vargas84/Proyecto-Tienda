@@ -12,6 +12,24 @@ class Inventario:
         self.usuarios_registrados=[]#Aqui guardaremos los objetos de tipo Usuarios
         self.compras_id=1
         self.detalle_id=1#contador de codigos o IDs para detaller(productos dentro de una factura)
+        self.ventas_id=1#contador de IDs para facturas de venta
+        self.lista_ventas=[]#almacen de facturas de ventas confirmadas
+        self.detalle_venta_id=1#contador de IDs para detalles de venta
+    
+    
+    def generar_id_venta(self):#generador de IDs para las ventas
+        id_generador_ventas=self.ventas_id
+        self.ventas_id+=1
+        return id_generador_ventas
+    
+    def liberar_id_venta(self):#en caso de que se cancele una factura se pueda devolver el ID
+        if self.ventas_id>0:
+            self.ventas_id-=1
+            
+    def generar_id_detalle_venta(self):#generador de IDs de detalleVenta
+        id_generador_detalle_venta=self.detalle_venta_id
+        self.detalle_venta_id+=1
+        return id_generador_detalle_venta
     
     def generar_id_detalle(self):#generador de IDs para cada detalle de la factura
         id_generador_detalle=self.detalle_id

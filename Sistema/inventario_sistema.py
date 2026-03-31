@@ -5,7 +5,9 @@ from Modelos.compras import Compra
 from Modelos.detalleCompra import DetalleCompra
 from utils import es_letras_y_espacios
 from Modelos.proveedores import Proveedor
-
+from Modelos.cliente import Cliente
+from Modelos.ventas import Ventas
+from Modelos.detalleVentas import DetalleVenta
 #Creamos las instancias UNICAS del sistema
 inventario=Inventario() #instancia de la clase Inventario, que contiene la lista de productos y metodos relacionados
 
@@ -758,7 +760,7 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                             
                                             # mensaje de confirmacion visual para el usuario
                                             # usa el nombre del producto y el ID de la factura actual
-                                            print(f'\n✓ "{producto_encontrado.nombre}" agregado a la factura {id_compra}.')       
+                                            print(f'\n"{producto_encontrado.nombre}" agregado a la factura {id_compra}.')       
                                             continue
                                         # continue vuelve al inicio del while True
                                         # esto hace que se muestre nuevamente el menu:
@@ -788,9 +790,7 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                              #empieza en 0 y aumenta conforme va recorriendo cada detalle(producto de la factura)
                                             total_factura = 0 
                                             
-                                            # enumerate recorre la lista y nos da dos cosas a la vez:
-                                            # i = el numero de fila (empieza en 1 gracias al segundo parametro)
-                                            # detalle = el objeto DetalleCompra de esa posicion
+                                            
                                             for detalle in factura.lista_detalles:#el 1 es le segundo parametro que hace que i empiece en 1
                                                 
                                                 # detalle.subtotal ya viene calculado desde la clase DetalleCompra
@@ -1650,7 +1650,7 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                                    
                                 elif op_compras==2:
                                 #se muestran todas las facturas que se hayan creado
-                                                                            # verificamos que haya facturas guardadas
+                                # verificamos que haya facturas guardadas
                                     if len(inventario.lista_compras) == 0:
                                         print('\nNo hay facturas registradas.')
                                         break
@@ -1807,12 +1807,853 @@ def inventarioSistema(inventario):#funcion principal que ejecuta el inventario(M
                                 elif op_compras==3:#volver al menu anterior
                                     break
                             
-                        
+                            #VENTAS DEL INVENTARIO
                             elif opcion_gestion == 3:
+                                if len(inventario.lista_productos)==0:#si el inventario es vacio no deja agregar ventas
+                                            print('\n El inventario se encuentra vacio. Agrege productos antes')
+                                            continue#se regresa
+                                while True:#MENU DE VENTAS
+                                    print('\n')
+                                    print(' === MENU DE VENTAS === ')
+                                    print(f'Bienvenido usuario {usuario_autenticado.nombre}')#usuario que usa el sistema
+                                    print('1) Registrar ventas')
+                                    print('2) Ver facturas de las ventas')
+                                    print('3) Volver al menu anterior')
+                                    
+                                    try:
+                                        op_ventas=int(input('Ingrese una opcion del menu: '))#se pide una opcion para el menu de ventas
+                                    except:
+                                        print('Ingrese unicamente una opcion numerica')
+                                        continue
+                                    if op_ventas<1 or op_ventas>3:#opcion fuera de rango
+                                        print('Opcion fuera de rango. Intente nuevamente')
+                                        continue
+                                    
+                                    if op_ventas==1:#Registrar una factura de venta
+                                        #en caso de haber productos en inventario
+                                        from datetime import datetime
+                                        fecha_hora=datetime.now().strftime('%d/%m/%Y %H:%M:%S')#obtenemos la fecha y hora exactas
+                                        id_venta=inventario.generar_id_venta() #generar el id de cada factura de venta
+                                        factura_venta=Ventas(id_venta)#crear el objeto de venta(factura de venta)
+                                        venta_confirmada=False
+                                        venta_cancelada=False 
+                                        inventario.detalle_venta_id=1#se inicia el id de cada detalle en 1 para que siempre que se cree un nuevo de talle en las facturas
+                                        #inicia en 1
+                                        while True:#factrua de venta , productos individualmente en la factura de venta
+                                            print(f'\n === FACTURA DE VENTA {id_venta}=== ')#aca se muestra el numero de la factura a la que le vamos añadir productos
+                                            print('1)Agregar productos a la venta')#añadir productos (unicamente productos que se encuentren disponibles en el inventario)
+                                            print('2)Ver productos de la venta')#ver todos los productos agregados hasta el momento en la factura
+                                            print('3)Eliminar productos de la venta')#eliminar productos de la factura(uncicamente con productos agregados ala venta)
+                                            print('4)Editar cantidad de un producto')#editar la cantidad a comprar de un producto
+                                            print('5)Cancelar venta')#cancela la venta y salta al menu anterior
+                                            print('6)Confirmar venta')#una vez confirmada una factura de venta no se puede editar ni eliminar la factura ni los productos alli dentro
+                                            
+                                            try:
+                                                op_factura_venta=int(input('Ingrese una opcion: '))#opcion de lo que se quiere hacer en el menu de la factura 
+                                            except:
+                                                print('Ingrese una opcion valida\n')#en caso de ingresar letras
+                                                continue#regresa a pedir la opcion
+                                            
+                                            if op_factura_venta<1 or op_factura_venta>6:#opcion fuera de rango
+                                                print('Opcion fuera de rango')
+                                                continue#vuelve a pedir la opcion 
+                                            
+                                            #1)AGREGAR PRODUCTOS A LA VENTA
+                                            elif op_factura_venta==1:#aca empezamos a agregar productos del inventario a la factura de ventas
+                                                inventario.mostrar_inventario()#se muestra el inventario para saber que productos puedo agregar
+                                                print('\nSolo se pueden agregar productos con Disponiblididad en Inventario')
+                                                buscar_en_inventario=input('\nIngrese el nombre del producto: ').strip()#pedimos el nombre del producto a vender 
+                                                
+                                                if not buscar_en_inventario:#si se busca un nombre vacio
+                                                    print('Este campo es obligatorio. Ingrese un nombre')#se lanza un mensaje de que el nombre es obligatorio
+                                                    continue#y vuelve a pedirlo
+                                                if not es_letras_y_espacios(buscar_en_inventario):#verificacion de los datos para nombre del producto
+                                                    print('Error: Ingrese unicamente letras')#enc caso de ingresar numeros y caracteres especiales
+                                                    continue#volvemso al inicio
+                                                
+                                                # verificar que no este ya en la factura, evitar duplicados en las facturas
+                                                ya_en_factura=False 
+                                                #por cada d (detalleVenta) en la lista de ventas que almacena estos detalles
+                                                for d in factura_venta.productos_vendidos:
+                                                    
+                                                    if d.objeto_producto.nombre.lower().replace(" ", "") == buscar_en_inventario.lower().replace(" ", ""):#se compara
+                                                        #el producto encontrado en el inventario y se verifica que no este agregado en esta factura 
+                                                        ya_en_factura = True
+                                                        break
+
+
+                                                if ya_en_factura:
+                                                    print(f'\n"{buscar_en_inventario}" ya fue agregado a esta factura.')
+                                                    print('No pueden existir productos duplicados')
+                                                    continue
+                                                
+                                                #verificamos que el producto se encuentre en inventario y que ademas de esto este disponible 
+                                                #en caso de no estar o de no estar disponible no se puede agregar
+                                                # verificamos que el producto exista, este disponible y tenga stock
+                                                producto_encontrado = None
+                                                
+                                                # p representa un producto dentro de inventario
+                                                for p in inventario.lista_productos:#buscamos el producto ingresado en el inventario
+                                                    if p.nombre.lower().replace(" ", "") == buscar_en_inventario.lower().replace(" ", ""):
+                                                        producto_encontrado = p#si lo encuentra lo guarda en la variable bandera que hemos colocado 
+                                                        #al principio del bucle
+                                                        break#deja de buscar
+
+                                                # si no existe en inventario
+                                                if producto_encontrado is None:
+                                                    print(f'\nEl producto "{buscar_en_inventario}" no existe en el inventario.No se pueden agregar productos que no esten en inventario')
+                                                    continue#sale al menu principal
+
+                                                # si existe pero no esta disponible
+                                                if producto_encontrado.disponibilidad == "No Disponible":#si el producto no esta disponible o sea no tiene stock 
+                                                    print(f'\nEl producto "{producto_encontrado.nombre}" no esta disponible para la venta.')
+                                                    continue
+
+                                                # si existe y esta disponible pero no tiene stock
+                                                if producto_encontrado.stock <= 0:
+                                                    print(f'\nEl producto "{producto_encontrado.nombre}" no tiene stock disponible.')
+                                                    continue
+
+                                                if producto_encontrado:#si el producto se encuentra en el inventario y paso todas las validaciones 
+                                                    #vamos a pedir la cantidad de ese producto para vender
+                                                    
+                                                    
+                                                    
+                                                    while True:#atributo cantidad de la clase detalleVenta(producto)
+                                                        #cantidad a vender del producto
+                                                        #en caso de confirmarse la cantidad se debe de descontar del stock
+                                                        cantidad_vender=input(f'Ingrese la cantidad a vender del producto {producto_encontrado.nombre}: ')
+                                                        
+                                                        if not cantidad_vender:#en caso de que sea una cantidad vacia 
+                                                            print('Este campo es obligatorio')
+                                                            continue #reinicia el bucle
+                                                        if not cantidad_vender.isnumeric():#en caso de que no contenga numeros
+                                                            print('Ingrese unicamente numeros')
+                                                            continue
+                                                        
+                                                        cantidad_vender=int(cantidad_vender)
+                                                        if cantidad_vender<=0:#en caso de ingresar una cantidad menor o igual a 0
+                                                            print('Ingrese una cantidad mayor a 0')
+                                                            continue#se reinica el bucle
+                                                        
+                                                        if cantidad_vender>producto_encontrado.stock:
+                                                            print(f'Stock insuficiente. Solo hay {producto_encontrado.stock} unidades disponibles.')
+                                                            continue
+                                                        break#solo llega aqui si la cantidad pasa todas las pruebas
+                                                    
+                                                    id_detalle_venta=inventario.generar_id_detalle_venta()#identificador de cada detalleVenta dentro de una factura
+                                                    #se crea el objeto detalleVenta (producto) dentro de una factura
+                                                    detalle_venta=DetalleVenta(id_detalle_venta,producto_encontrado,cantidad_vender)
+                                                    
+                                                    #se agrega el detalleVenta a la factura de ventas
+                                                    #se agrega el detalleVenta a la clase Ventas
+                                                    #es como escribir una nueva fila en la factura de ventas
+                                                    #despues de esto len(factura.productos_vendidos) aumenta en 1
+                                                    factura_venta.agregar_detalle(detalle_venta)
+                                                    
+                                                    
+                                                    #mensaje de confirmacion visual para el usuario
+                                                    #usa el nombre del producto y el ID de la factura actual
+                                                    print(f'\n{producto_encontrado.nombre} agregado a la factura {id_venta}')
+                                                    continue
+                                                    #continue vuelve al inicio del while true
+                                                    #esto hace que se muestre nuevemante el menu:
+                                                    # 1)agregar productos a la venta
+                                                    #2) ..... 
+                                                    #3) ......
+                                                
+                                                
+                                                
+                                            #VER PRODUCTOS DE LA FACTURA DE VENTAS 
+                                            elif op_factura_venta==2:    
+                                                if len(factura_venta.productos_vendidos)==0:#se verifica que hayan productos en la venta
+                                                    print('\nNo hay productos registrados en esta venta')#si no hay productos se lanza un mensaje
+                                                    continue #regresa al menu anterior
+                                                
+                                                
+                                                
+                                                #encabezado de la tabla 
+                                                print(f'\n=== PRODUCTOS EN LA FACTUA DE VENTAS {id_venta} ===')# se muestra en que factura estamos                                                                                   
+                                                print(f'{'Codigo':<9} {'Nombre':<20} {'Precio unitario':<20} {'Cantidad':<20} {'Total'}')
+                                                print('-'*110)#linea separadora con guiones
+                                                
+                                                # recorremos cada detalle(producto) de la factura y mostramos sus datos
+                                                # acumulador del total general de la factura
+                                                #empieza en 0 y aumenta conforme va recorriendo cada detalle(producto de la factura)
+                                                total_factura = 0 
+                                                
+                                                for detalle in factura_venta.productos_vendidos:#recorre todos los productos que hayan guardados en la factura 
+                                                    
+                                                    #va almacenando los totales de cada uno de los productos
+                                                    #para sacar el total
+                                                    total_factura+=detalle.subtotal
+                                                    
+                                                    
+                                                    print(f'{detalle.id_detalle_ventas:<9} {detalle.objeto_producto.nombre:<20} {detalle.precio_venta:<20} {detalle.cantidad_vender:<20} ${detalle.subtotal}')
+                                            
+                                                print('-'*110)#linea separadora
+                                                
+                                                #mostramos el total general de toda la factura 
+                                                
+                                                print(f'{'TOTAL VENTA: ':<75}  ${total_factura}')
+                                                continue#regresa al menu anterior
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            #ELIMINAR PRODUCTOS DE LA FACTURA DE VENTAS 
+                                            elif op_factura_venta==3:
+                                                #advertencia cuando solo queda un producto en la factura de ventas
+                                                #advertecnia antes de cualquier accion
+                                                if len(factura_venta.productos_vendidos)==0:
+                                                    print('\nNo hay productos registrados en esta venta')#si no hay productos se lanza un mensaje
+                                                    continue #regresa al menu anterior
+                                                
+                                                
+                                                if len(factura_venta.productos_vendidos)==1:
+                                                    print('\n!!! ADVERTENCIA: La factura solo tiene un producto !!!'.center(110))
+                                                    print('Si lo eliminas la factura quedara vacia y sera cancelada automaticamente.\n')
+
+                                                    
+                                                    #mostrar el unico producto que queda
+                                                    detalle_unico_venta=factura_venta.productos_vendidos[0]#accedemos directamente al unico detalle que queda 
+                                                    #en la factura
+                                                    total_factura = 0 
+                                                    for detalle in factura_venta.productos_vendidos:#recorre todos los productos que hayan guardados en la factura 
+                                                    #va almacenando los totales de cada uno de los productos
+                                                    #para sacar el total
+                                                            total_factura+=detalle.subtotal
+                                                    print(f'\n{"Codigo":<9} {"Nombre":<20} {"Precio unitario":<20} {"Cantidad":<20} {"Total"}')
+                                                    print('-' * 110)
+                                                    print(f'{detalle.id_detalle_ventas:<9} {detalle.objeto_producto.nombre:<20} {detalle.precio_venta:<20} {detalle.cantidad_vender:<20} ${detalle.subtotal}')
+                                                    print('-' * 110) 
+                                                   
+                                                    # preguntar si desea eliminarlo
+                                                    #si se elimina la factura queda vacia por ende tambien se elimina la factura
+                                                    while True:
+                                                        continuar = input(f'\n¿Deseas eliminar "{detalle.objeto_producto.nombre}"? (si/no): ').strip().lower()
+                                                        if not continuar:#en caso de una respuesta vacia
+                                                            print('Este campo es obligatorio. Ingrese si o no.')
+                                                            continue#se vuelve a preguntar nuevamente
+                                                        if not es_letras_y_espacios(continuar):
+                                                            print('Ingrese unicamente letras.')
+                                                            continue#en caso de ingresar numeros o caracteres especiales
+                                                        if continuar not in ['si', 'no']:
+                                                            print('Opcion invalida. Ingrese si o no.')#en caso de ingresar cualquier cosa diferente a si o no
+                                                            continue
+                                                        break#solo sale cuando se igrese si o no 
+
+                                                    if continuar == 'no':#si se ingresa 'no', no se hace la eliminacion, por ende se cancela la eliminacion
+                                                        print('\nOperacion cancelada.')
+                                                        continue  # regresa al menu editar informacion
+
+                                                    # si dijo si — eliminar y cancelar la factura automaticamente
+                                                    factura_venta.productos_vendidos.remove(detalle_unico_venta)#se remueve el unico detalle existente en la factura
+                                                    inventario.liberar_id_venta()#se libera el ID de la factura , para que pueda ser usado en la siguiente factura
+                                                    print(f'\n!!! La factura {id_venta} fue cancelada automaticamente por quedar sin productos !!!'.center(110))
+                                                    venta_cancelada=True#se activa la bandera que indica al resto del sistema, la cancelacion de la factura
+                                                    break  # sale del while de op_editar_infor
+                                                
+                                                
+                                                # pedir el codigo del detalle a eliminar
+                                                #se muestra la informacion de todos los productos en la factura para saber cual eliminar
+                                                print(f'INFORMACION DE LOS PRODUCTOS EN LA FACTURA {id_venta}'.center(110))
+                                                print('-'*110)
+                                                print(f'Factura: {id_venta} | Empleado: {usuario_autenticado.nombre} | Fecha: {fecha_hora}')
+                                                print('-'*110)
+                                                print(f'\n{"Codigo":<9} {"Nombre":<20} {"Precio unitario":<20} {"Cantidad":<20} {"Total"}')
+                                                total_factura=0
+                                                for detalle in factura_venta.productos_vendidos:
+                                                    total_factura+=detalle.subtotal
+                                                    print(f'{detalle.id_detalle_ventas:<9} {detalle.objeto_producto.nombre:<20} {detalle.precio_venta:<20} {detalle.cantidad_vender:<20} ${detalle.subtotal}')
+                                                print('-'*110)
+                                                print(f'{"TOTAL COMPRA:":<75} ${total_factura}')
+                                                print('-'*110)
+                                                print('\n')
+                                                try:
+                                                    codigo_eliminar = int(input('\nIngrese el codigo del producto a eliminar: '))#codigo del producto dentro de la factura
+                                                except:
+                                                    print('Ingrese un codigo valido.')
+                                                    continue  # regresa al menu editar informacion
+
+                                                # buscar el detalle por su id dentro de la factura
+                                                detalle_eliminar = None
+                                                for detalle in factura_venta.productos_vendidos:
+                                                    if detalle.id_detalle_ventas == codigo_eliminar:
+                                                        detalle_eliminar = detalle
+                                                        break#deja de buscar
+
+                                                # si no se encontro el codigo
+                                                if detalle_eliminar is None:
+                                                    print(f'\nNo se encontro ningun producto con el codigo {codigo_eliminar} en la factura.')
+                                                    continue  # regresa al menu editar informacion
+
+                                                
+                                                print(f'\n{"Codigo":<9} {"Nombre":<20} {"Precio unitario":<20} {"Cantidad":<20} {"Total"}')
+                                                print('-' * 90)
+                                                print(f'{detalle.id_detalle_ventas:<9} {detalle.objeto_producto.nombre:<20} {detalle.precio_venta:<20} {detalle.cantidad_vender:<20} ${detalle.subtotal}')
+                                                print('-' * 90)
+                                                print(f'\nEl producto sera eliminado de la factura {id_venta}.')
+                                                #se vuelve a preguntar si se desea confirmar la informacion de este producto
+                                                print('\n')
+                                                print('1)Confirmar eliminacion')
+                                                print('2)Cancelar y volver al menu anterior')
+                                                try:
+                                                    op_eliminar = int(input('Ingrese una opcion: '))
+                                                except:
+                                                    print('Opcion invalida.')
+                                                    continue  # regresa al menu editar informacion
+
+                                                if op_eliminar < 1 or op_eliminar > 2:
+                                                    print('Opcion fuera de rango.')
+                                                    continue  # regresa al menu editar informacion
+
+                                                elif op_eliminar == 1:  # confirmar eliminacion
+                                                    nombre_eliminado = detalle_eliminar.objeto_producto.nombre  # guardamos nombre antes de eliminar
+                                                    factura_venta.productos_vendidos.remove(detalle_eliminar)  # eliminamos el detalle de la lista
+                                                    print(f'\nProducto "{nombre_eliminado}" eliminado de la factura {id_venta} correctamente.\n')
+
+                                                    # si la factura quedo vacia se cancela automaticamente
+                                                    if len(factura_venta.productos_vendidos) == 0:
+                                                        inventario.liberar_id_venta()  # devolvemos el ID
+                                                        print(f'\nLa factura {id_venta} quedo sin productos y fue cancelada automaticamente.')
+                                                        venta_cancelada = True  # activamos la bandera
+                                                        break  # sale del while de op_editar_infor
+
+                                                    continue  # regresa al menu editar informacion con cambios reflejados
+
+                                                elif op_eliminar == 2:  # cancelar
+                                                    print('\nEliminacion cancelada.')
+                                                    continue  # regresa sin cambios
+                                                                                                                
+                                            
+                                            
+                                            #EDITAR CANTIDAD DE UN PRODUCTO          
+                                            elif op_factura_venta==4:
+                                                if len(factura_venta.productos_vendidos)==0:
+                                                    print('\nNo hay productos registrados en esta venta')#si no hay productos se lanza un mensaje
+                                                    continue #regresa al menu anterior
+                                                total_factura=0
+                                                for detalle in factura_venta.productos_vendidos:
+                                                    total_factura+=detalle.subtotal
+                                                #se debe mostrar los productos dentro de la factura para saber cual sera editado
+                                                print(f'\n{"Codigo":<9} {"Nombre":<20} {"Precio unitario":<20} {"Cantidad":<20} {"Total"}')
+                                                print('-' * 90)
+                                                print(f'{detalle.id_detalle_ventas:<9} {detalle.objeto_producto.nombre:<20} {detalle.precio_venta:<20} {detalle.cantidad_vender:<20} ${detalle.subtotal}')
+                                                print('-' * 90)
+                                                                                    # pedir el codigo del detalle a editar
+                                                try:
+                                                    codigo_buscar = int(input('\nIngrese el codigo del producto a editar: '))#variable para buscar el codigo a editar
+                                                except:
+                                                    print('Ingrese un codigo valido.')
+                                                    continue
+                                                # buscar el detalle por su id dentro de la factura
+                                                detalle_editar = None #si encuentra algun detalle que coincida lo guardara aqui
+                                                for detalle in factura_venta.productos_vendidos:#busca el detall(producto)
+                                                    if detalle.id_detalle_ventas == codigo_buscar:#si encuentra 
+                                                        detalle_editar = detalle#lo guarda
+                                                        break#y deja de buscar
+                                                            
+                                                if detalle_editar is None:  # no se encontro el codigo
+                                                    print(f'\nNo se encontro ningun producto con el codigo {codigo_buscar} en la factura.\n')
+                                                    continue  # regresa al menu editar informacion                        
+                                                #si lo encuentra se pide la nueva cantidad
+                                                
+                                                while True:
+                                                    nueva_cantidad_venta=input(f'Actualizar cantidad [{detalle_editar.objeto_producto.nombre}] : ').strip()
+                                                    if nueva_cantidad_venta=="":#en caso que sea vacia
+                                                        print(f'La cantidad del producto [{detalle_editar.objeto_producto.nombre}] quedo igual: {detalle_editar.cantidad_vender}')
+                                                        break#se rompe el ciclo para cantidad
+                                                    if not nueva_cantidad_venta.isnumeric():
+                                                        print('Solo numeros enteros.')
+                                                        continue#vuelve a pedir la cantidad
+                                                    nueva_cantidad_venta=int(nueva_cantidad_venta)
+                                                    if nueva_cantidad_venta<=0:
+                                                        print('Debe ser mayor a 0')
+                                                        continue#vuelve a pedir otra vez la cantidad
+                                                    if nueva_cantidad_venta> detalle_editar.objeto_producto.stock:
+                                                        print(f'Stock insuficiente. Solo hay {detalle_editar.objeto_producto.stock} unidades disponibles.')
+                                                        continue
+                                                
+                                                
+                                                    #actualizamos la cantidad y recalculamos el subtotald
+                                                    detalle_editar.cantidad_vender=nueva_cantidad_venta
+                                                    detalle_editar.subtotal=nueva_cantidad_venta*detalle_editar.precio_venta
+                                                    print(f'Cantidad actualizada a {nueva_cantidad_venta}.')
+                                                    break
+                                                
+                                            #CANCENLAR VENTA
+                                            elif op_factura_venta==5:
+                                                inventario.liberar_id_venta()
+                                                print('\nCompra cancelada.\n ')
+                                                venta_cancelada=True
+                                                break 
+                                            
+                                            
+                                            #CONFIRMAR VENTA
+                                            elif op_factura_venta==6:
+                                                if len(factura_venta.productos_vendidos)==0:
+                                                    print('\nNo hay productos registrados en esta venta')#si no hay productos se lanza un mensaje
+                                                    continue #regresa al menu anterior
+                                                
+                                                print(f'FACTURA CONFIRMADA {id_venta}')
+                                                print('-'*110)
+                                                print(f'FACTURA DE VENTA: {id_venta} | Empleado: {usuario_autenticado.nombre} | Fecha: {fecha_hora}')
+                                                print('-'*110)
+                                                print(f'\n{"Codigo":<9} {"Nombre":<20} {"Precio unitario":<20} {"Cantidad":<20} {"Total"}')
+                                                print('-'*110)
+                                                total_factura_venta=0
+                                                for detalle in factura_venta.productos_vendidos:
+                                                    total_factura_venta+=detalle.subtotal
+                                                    print(f'{detalle.id_detalle_ventas:<9} {detalle.objeto_producto.nombre:<20} {detalle.precio_venta:<20} {detalle.cantidad_vender:<20} ${detalle.subtotal}')   
+                                                    
+                                                    
+                                                print('-'*110)
+                                                print(f'{"TOTAL COMPRA:":<75} ${total_factura_venta}')
+                                                print('-'*110)
+                                                print('\n')
+                                                
+                                                #DATOS DEL CLIENTE A QUIEN LE VAMOS A VENDER ESTOS PRODUCTOS
+                                                while True: #Bucle para validar que se ingrese un nombre correctament
+                                                    nombre_cliente= input("Ingrese el nombre del cliente:  ")#nombre del proveedor
+                                                        #La función 'es_letras_y_espacios' verifica que el nombre contenga solo letras y espacios, y que no esté vacío.
+                                                    if not es_letras_y_espacios(nombre_cliente) or nombre_cliente is None:#verificacion de los datos para nombre de administrador
+                                                        print("Nombre invalido. Use solo letras y espacios")
+                                                    else:
+                                                        break
+            
+                                                while True: #bucle para validar que se ingrese un documento correctamente
+                                                    documento_cliente= input(f"Registre el documento del cliente {nombre_cliente}: ")#documento del provedor
+                                                    if not documento_cliente: #documento vacio
+                                                        print('Debes ingresar un documento. Este campo es obligatorio para el registro')
+                                                        continue #reiniciar al while
+                                                    elif not documento_cliente.isdigit():
+                                                        print('Ingrese unicamente numeros')
+                                                        continue #reiniciar el while
+                    
+                                                    elif len(documento_cliente)>=8 and len(documento_cliente)<=10:#si el documento contiene de 8 a 10 numeros
+                                                        try:
+                                                            documento_cliente=int(documento_cliente)#convertimos a entero cuando sean validos
+                                                            #validar si existe ya en la base de datos
+                                                            existe=False#variable para verificar si existe o no
+                                                            for usuario in inventario.usuarios_registrados:
+                                                                if usuario.documento == documento_cliente:
+                                                                    existe=True
+                                                                    break#dejarlo de buscar si lo encuentra
+                                                            if existe:
+                                                                print(f'El documento {documento_cliente} No es correcto. Intente nuevamente')
+                                                                #no hay break aqui asi que el while True se repite
+                                                            else:
+                                                                #paso todas las pruebas
+                                                                #documento=documento #guardamos el valor validado
+                                                                break   #rompe el while y pasa al siguiente requisito    
+                    
+                                                        except:
+                                                            print('Ingrese el numero de documento sin espacios ni puntos')
+                                                            continue
+                                                        else:
+                                                            print('Ingrese un documento con minimo 8 numeros y maximo 10 numeros')
+                
+                
+                                                while True: #bucle para validar que se ingrese un telefono correctamente
+                                                    telefono_cliente= input(f"Registre el telefono del cliente {nombre_cliente}: ")
+                                                    if not telefono_cliente:#telefono vacio
+                                                        print('Debes ingresar un telefono. Este campo es obligatorio para el registro')
+                                                        continue# reiniciar el while
+                                                    elif not telefono_cliente.isdigit():
+                                                        print('Ingrese unicamente numeros')
+                                                        continue#reinicie el while
+                                                    elif len(telefono_cliente)==10:#si la longitud del telefono es 10
+                                                        try:
+                                                            telefono_cliente=int(telefono_cliente)#convertios a entero el numero de telefoono
+                                                            #validar si existe ya en la base de datos
+                                                            existe=False#variable para verificar si existe o no
+                                                            for usuario in inventario.usuarios_registrados:
+                                                                if usuario.telefono==telefono_cliente:
+                                                                    existe=True
+                                                                    break#dejarlo de buscar si lo encuentra
+                                                            if existe:
+                                                                print(f'El telefono {telefono_cliente} No es correcto. Intente nuevamente')
+                                                                #el while se repite
+                        
+                                                            else:
+                                                            #si llegamos aqui pasamos todas las pruebas
+                                                                break# rompe el codigo y guarda el telefono
+                                                        except:
+                                                            print('Ingrese el telefono sin espacios ni puntos')
+                                                            continue
+                                                    else:
+                                                        print('Ingrese un telefono con maximo 10 numeros')
+
+                                                
+                                                #una vez validados los atributos del objeto de tipo cliente
+                                                #creamos el objeto de tipo proveedor al que pertenece esta factura
+                                                cliente=Cliente(nombre_cliente,documento_cliente,telefono_cliente)
+                                                #MENU DE CONFIRMACION Y EDICION DE DATOS DEL CLIENTE
+                                                while True:
+                                                    print('-'*110)
+                                                    print(f'FACTURA DE VENTA: {id_venta} | Empleado: {usuario_autenticado.nombre} | Fecha: {fecha_hora}')
+                                                    print('-'*110)
+                                                    print(f'Cliente:{cliente.nombre_cliente}  |  Telefono: {cliente.telefono}  |  NIT/CC: {cliente.documento}')
+                                                    print('-'*110)
+                                                    print(f'{"Codigo":<9} {"Nombre":<20} {"Precio unitario":<20} {"Cantidad":<20} {"Total"}')
+                                                    print('-'*110)
+                                                    total_factura_venta=0
+                                                    for detalle in factura_venta.productos_vendidos:
+                                                        total_factura_venta+=detalle.subtotal
+                                                        print(f'{detalle.id_detalle_ventas:<9} {detalle.objeto_producto.nombre:<20} {detalle.precio_venta:<20} {detalle.cantidad_vender:<20} ${detalle.subtotal}')   
+                                                    print('-'*110)
+                                                    print(f'{"TOTAL COMPRA:":<75} ${total_factura_venta}')
+                                                    print('-'*110)
+                                                    print('!!! IMPORTANTE: Revise muy bien la informacion de la factura.'.center(110))#mensaje de advertecia antes de confirmar la factura
+                                                    print('    Una vez confirmada, no se podra eliminar, ni editar ¡¡¡'.center(110))
+                                                    print('\n')
+                                                    print(f'MENU DE CONFIRMACION FACTURA {id_venta} === ')
+                                                    print('1)Editar informacion de cliente')
+                                                    print('2)Confirmar compra')
+                                                    print('3)Regresar al menu anterior')
+                                                    
+                                                    #se hacen las respectivas validaciones
+                                                    try:
+                                                        op_confir_venta=int(input('Ingrese una opcion: '))
+                                                    except:
+                                                        print('Ingrese un opcion valida\n')#en caso de ingresar letras
+                                                        continue#regresa a pedir la opcion
+                                                    if op_confir_venta<1 or op_confir_venta>3:
+                                                        print('opcion fuera de rango')
+                                                        continue#vuelve a pedir la opcion
+                                                    
+                                                    
+                                                    elif op_confir_venta==1:#editar informacion de los clientes
+                                        
+                                                        while True:
+                                                            # mostrar informacion actualizada del cliente antes de cada opcion
+                                                            print('\n')
+                                                            print('-'*110)
+                                                            print(f'FACTURA DE VENTA: {id_venta} | Empleado: {usuario_autenticado.nombre} | Fecha: {fecha_hora}')
+                                                            print('-'*110)
+                                                            print(f'Cliente:{cliente.nombre_cliente}  |  Telefono: {cliente.telefono}  |  NIT/CC: {cliente.documento}')
+                                                            print('-' * 110)
+                                                            print('\nEditar informacion del proveedor')
+                                                            print('1) Editar nombre del proveedor')
+                                                            print('2) Editar telefono del proveedor')
+                                                            print('3) Editar documento')
+                                                            print('4) Regresar al menu anterior')
+                                                            
+                                                            try:
+                                                                op_editar_cliente = int(input('Ingrese una opcion: '))#que se quiere editar del proveedor
+                                                            except:
+                                                                print('Ingrese una opcion valida.')
+                                                                continue#vuelve a pedir que se quiere editar
+                                                            
+                                                            if op_editar_cliente < 1 or op_editar_cliente > 4:
+                                                                print('Opcion fuera de rango.')
+                                                                continue#vuelve a pedir que se quiere editar
+                                                            
+                                                            elif op_editar_cliente == 1:  # editar nombre
+                                                                while True:#validaciones para el nombre
+                                                                    nuevo_nombre = input(f'Nuevo nombre [{cliente.nombre_cliente}]: ').strip()
+                                                                    if not nuevo_nombre:#si el nombre queda vacio se deja el que estaba
+                                                                        print(f'El nombre quedo igual: {cliente.nombre_cliente}')
+                                                                        break#se rompe el codigo y se regresa al menu de editar proveedor
+                                                                    elif not es_letras_y_espacios(nuevo_nombre):#en caso de numeros o caracteres especiales
+                                                                        print('Solo letras y espacios. Sin cambios.')
+                                                                        continue#se vuelve a pedir
+                                                                    else:#solo llega aca si todo esta bien
+                                                                        cliente.nombre_cliente = nuevo_nombre#actualiza el nuevo nombre
+                                                                        print(f'Nombre actualizado a "{nuevo_nombre}".')
+                                                                        break#vuelve al menu anterior con la informacion actualizada
+                                                                    
+                                                                    
+                                                            elif op_editar_cliente == 2:  # editar telefono
+                                                                while True:#validaciones para el telefono
+                                                                    nuevo_tel = input(f'Nuevo telefono [{cliente.telefono}]: ').strip()
+                                                                    if not nuevo_tel:#si no se ingrea el nombre queda igual
+                                                                        print(f'El telefono quedo igual: {cliente.telefono}')
+                                                                        break#se rompe el codigo y se regresa al menu de editar proveedor
+                                                                    elif not nuevo_tel.isdigit():
+                                                                        print('Solo numeros. Sin cambios.')
+                                                                        continue#se vuelve a pedir el numero en caso de ingresar letras o caracteres especiales
+                                                                    elif len(nuevo_tel) != 10:#es caso de que no se ingrese un numero con 10 numeros
+                                                                        print('El telefono debe tener 10 numeros. Sin cambios.')
+                                                                        continue#se vuelve a pedir el numero de telefono
+                                                                    else:#solo llega aca si todo esta correcto
+                                                                        cliente.telefono = int(nuevo_tel)#se pasa a entero el numero de telefono
+                                                                        print(f'Telefono actualizado a {nuevo_tel}.')
+                                                                        break#vuelve al menu anterios con la informacion actualizada
+                                                                    
+                                                                    
+                                                                    
+                                                            elif op_editar_cliente == 3:  # editar documento
+                                                                while True:#validaciones para el docuemnto
+                                                                    nuevo_doc = input(f'Nuevo documento [{cliente.documento}]: ').strip()
+                                                                    if not nuevo_doc:#en caso de quedar vacio se deja como estaba
+                                                                        print(f'El documento quedo igual: {cliente.documento}')
+                                                                        break#vuelve al menu anterior con la informacion actualizada
+                                                                    elif not nuevo_doc.isdigit():#en caso no ingresar numeros
+                                                                        print('Solo numeros.')
+                                                                        continue#vuelve a pedir el documento
+                                                                    elif len(nuevo_doc) < 8 or len(nuevo_doc) > 10:#en caso de que el documento sea menor a 8 y mayor a 10
+                                                                        print('El documento debe tener entre 8 y 10 numeros.')
+                                                                        continue#volver a pedir el documento
+                                                                    else:#solo llega aca cuando se haya validado satisfactoriamente la informacion
+                                                                        cliente.documento = int(nuevo_doc)#se actualiza en la factura
+                                                                        print(f'Documento actualizado a {nuevo_doc}.')#se lanza el mensaje de actualizacion
+                                                                        break#se rompre el codigo y vuelve con la informacion actualizada
+                                                                    
+                                                                    
+                                                            elif op_editar_cliente == 4:  # regresar
+                                                                break  # sale al menu de confirmacion
+                                                            
+                                                                                
+                                                    #CONFIRMACION DE LA FACTURA DE VENTAS
+                                                    elif op_confir_venta==2:
+                                                        print(f'FACTURA CONFIRMADA {id_venta}'.center(110))
+                                                        print(f'FACTURA DE VENTA: {id_venta} | Empleado: {usuario_autenticado.nombre} | Fecha: {fecha_hora}')
+                                                        print('-'*110)
+                                                        print(f'Cliente:{cliente.nombre_cliente}  |  Telefono: {cliente.telefono}  |  NIT/CC: {cliente.documento}')
+                                                        print('-'*110)
+                                                        print(f'{"Codigo":<9} {"Nombre":<20} {"Precio unitario":<20} {"Cantidad":<20} {"Total"}')
+                                                        print('-'*110)
+                                                        total_factura_venta=0
+                                                        for detalle in factura_venta.productos_vendidos:
+                                                            total_factura_venta+=detalle.subtotal
+                                                            print(f'{detalle.id_detalle_ventas:<9} {detalle.objeto_producto.nombre:<20} {detalle.precio_venta:<20} {detalle.cantidad_vender:<20} ${detalle.subtotal}')   
+                                                        print('-'*110)
+                                                        print(f'{"TOTAL COMPRA:":<75} ${total_factura_venta}')
+                                                        print('-'*110)
+                                                        print(f'\n!!! Factura {id_venta} confirmada. No se puede editar ni eliminar !!!'.center(110))
+
+                                                        #marcar la factura como confirmada
+                                                        # descontar stock del inventario por cada producto vendido
+                                                       # recorremos todos los detalles de la factura de venta
+                                                        # cada detalle representa un producto que se vendio
+                                                        for detalle in factura_venta.productos_vendidos:
+                                                            
+                                                            # ahora buscamos ese mismo producto en el inventario
+                                                            # necesitamos encontrarlo ahi para poder modificar su stock real
+                                                            for p in inventario.lista_productos:
+                                                                
+                                                                # comparamos el codigo del producto en el detalle
+                                                                # con el codigo de cada producto en el inventario
+                                                                # cuando coincidan sabemos que es el mismo producto
+                                                                if p.codigo == detalle.objeto_producto.codigo:
+                                                                    # p es el producto REAL en el inventario
+                                                                    # detalle.objeto_producto es la referencia que guardamos en la factura
+                                                                    # ambos apuntan al mismo producto pero usamos p para modificar el inventario
+                                                                    
+                                                                    # DESCONTAR EL STOCK:
+                                                                    # p.stock es la cantidad que hay actualmente en inventario
+                                                                    # detalle.cantidad_vender es la cantidad que se vendio
+                                                                    # con -= restamos la cantidad vendida del stock actual
+                                                                    # ejemplo: habia 35 en stock y vendimos 5
+                                                                    # 35 -= 5 → p.stock queda en 30
+                                                                    p.stock -= detalle.cantidad_vender
+                                                                    
+                                                                    # verificamos si el stock llego a 0 despues de la venta
+                                                                    # si llego a 0 significa que no hay mas unidades disponibles
+                                                                    # entonces marcamos el producto como No Disponible automaticamente
+                                                                    # para que no se pueda agregar a futuras ventas
+                                                                    if p.stock == 0:
+                                                                        p.disponibilidad = "No Disponible"
+                                                                        print(f'"{p.nombre}" sin stock. Marcado como No Disponible.')
+                                                                    
+                                                                    # mostramos un mensaje con el resultado del descuento
+                                                                    # p.stock + detalle.cantidad_vender nos da el stock ANTES de la venta
+                                                                    # porque ya restamos, entonces sumamos de vuelta para mostrar el anterior
+                                                                    # ejemplo: stock actual=30, vendidos=5
+                                                                    # 30 + 5 = 35 (stock anterior) - 5 (vendidos) = 30 (stock actual)
+                                                                    print(f'Stock de "{p.nombre}" actualizado: {p.stock + detalle.cantidad_vender} - {detalle.cantidad_vender} vendidos = {p.stock} restantes.')
+                                                                    
+                                                                    # dejamos de buscar en el inventario porque ya encontramos
+                                                                    # y actualizamos el producto correcto
+                                                                    break
+                                                                # guardar la factura en el sistema
+                                                        factura_venta.venta_confirmada = True        # en la clase es 'venta_confirmada'
+                                                        factura_venta.total_venta = total_factura_venta  # en la clase es 'total_venta'
+                                                        factura_venta.cliente = cliente              # este si coincide
+                                                        factura_venta.fecha = fecha_hora             # en la clase es 'fecha'
+                                                        inventario.lista_ventas.append(factura_venta)
+                                                        print(f'\nFactura {id_venta} guardada correctamente.')
+                                                        
+                                                        # activamos la bandera para salir de todos los menus
+                                                        venta_confirmada = True
+                                                        break  # sale del while de op_confir_venta           
+                                                                          
+                                                    #Regresar al menu anterior MENU DE CONFIRMACION
+                                                    elif op_confir_venta==3:
+                                                        break
+                                                
+                                                if venta_confirmada:
+                                                    break  # sale del while de op_factura_venta
+                                                
+                                            # al salir del while de op_factura_venta
+                                            if venta_cancelada or venta_confirmada:
+                                                continue  # vuelve al menu de ventas            
+                                            
+                                        #cierre del while True de op_factura_venta
+                                        if venta_cancelada or venta_confirmada:
+                                            continue#vuelve al menu principal de ventas
+
+
+
+
+
+
+                                    #VER TODAS LAS FACTURAS DE VENTAS REGISTRADAS
+                                    if op_ventas==2:#ver todas las facturas de ventas registradas
+                                        if len(inventario.lista_ventas)==0:#si no hay ventas registradas
+                                            print('\nNo hay facturas de ventas registradas\n')
+                                            break#regresa al menu anterior
+                                        
+                                        while True:#menu para buscar las facturas por mes y año
+                                                print('\n=== VER FACTURAS DE VENTAS ===')
+                                                print('1) Buscar facturas por mes y año (En desarrollo)')
+                                                print('2) Ver todas las facturas de ventas')
+                                                print('3) Regresar al menu anterior')
+                                                try:
+                                                    op_buscar_ventas=int(input('Ingrese una opcion: '))
+                                                except:
+                                                    print('Ingrese una opcion valida\n')#en caso de ingresar letras
+                                                    continue#regresa a pedir la opcion
+                                                if op_buscar_ventas<1 or op_buscar_ventas>3:
+                                                    print('opcion fuera de rango')
+                                                    continue#vuelve a pedir la opcion
+                                                
+                                                
+                                                elif op_buscar_ventas==1:# BUSCAR POR MES Y AÑO 
+                                                    #verificamos que hayan facturas de ventas guardadas
+                                                    if len(inventario.lista_ventas)==0:
+                                                        print('\nNo hay facturas de ventas registradas\n')
+                                                        break#regresa al menu anterior
+                                                    
+                                                    #en caso contrario pedimos el mes y el año 
+                                                    while True:
+                                                        try:#PEDIR MES con sus respectivas validaciones
+                                                            mes = int(input('Ingrese el mes (1-12): '))
+                                                            if mes < 1 or mes > 12:#en caso de ingresar un mes menor o mayor a 12
+                                                                print('Mes invalido. Ingrese un numero entre 1 y 12.')
+                                                                continue#vuelve a pedir el mes
+                                                            break#si se ingresa bien se rompe el ciclo y continua 
+                                                        except:
+                                                            print('Ingrese un numero valido.')
+                                                            continue#vuelve a pedir el mes en caso de ingresar letras o caracteres especiales
+
+                                                    # pedimos el año
+                                                    while True:#VALIDACIONES PARA EL AÑO
+                                                        try:
+                                                            anio = int(input('Ingrese el año (ej: 2026): '))
+                                                            if anio < 2000 or anio > 2100:#Se pone un limite de años
+                                                                print('Año invalido.')
+                                                                continue#en caso de ingresar un años fuera del rango
+                                                            break#en acaso contrario se rompre el codigo y continua
+                                                        except:
+                                                            print('Ingrese un numero valido.')
+                                                            continue#vuelve a pedir el año en caso de ingresar letras o especiales
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    
+                                                    #cuando todas las validaciones sean correctas
+                                                    # filtramos las facturas que correspondan a ese mes y año
+                                                    # factura.fecha_hora tiene formato 'dd/mm/yyyy hh:mm:ss'
+                                                    # dividimos el string por '/' para obtener dia, mes y año
+                                                    
+                                                    #en esta lista se guardaran las facturas que correspondan al mes y año que el usuario ingreso
+                                            
+                                                    facturas_ventas_filtradas=[]
+                                            
+                                            
+                                                    #vamos a recorrer todas las facturas guardadas en el inventario 
+                                                    #la variable venta_guardada es cada objeto Venta de la lista 
+                                                    for venta_guardada in inventario.lista_ventas:
+                                                        # factura_guardada.fecha_hora es un string con formato 'dd/mm/yyyy hh:mm:ss'
+                                                        # ejemplo: '16/03/2026 10:35:22'
+                                                        # .split('/') divide ese string cada vez que encuentra un '/'
+                                                        # el resultado es una lista con 3 partes:
+                                                        # partes[0] = '16'              → el dia
+                                                        # partes[1] = '03'              → el mes
+                                                        # partes[2] = '2026 10:35:22'   → el año pegado con la hora
+                                                        partes_venta=venta_guardada.fecha.split('/')#separamos la fecha por el caracter '/' para obtener dia, mes y año
+
+                                                        
+                                                        
+                                                        # partes[1] es el mes como string '03'
+                                                        # int() lo convierte a numero entero 3
+                                                        # asi podemos compararlo con el mes que ingreso el usuario
+                                                        mes_venta=int(partes_venta[1])#obtenemos el mes de la venta actual en el ciclo
+                                                        
+                                                        
+                                                        # partes[2] es '2026 10:35:22' — tiene el año pegado con la hora
+                                                        # [:4] toma solo los primeros 4 caracteres → '2026'
+                                                        # int() lo convierte a numero entero 2026
+                                                        anio_venta = int(partes_venta[2][:4])  # '2026 10:35:22' → '2026' → 2026
+                                                        
+                                                        
+                                                        # comparamos el mes y año de esta factura
+                                                        # con el mes y año que ingreso el usuario
+                                                        # si ambos coinciden, esta factura pertenece al periodo buscado
+                                                        if mes_venta == mes and anio_venta == anio:
+                                                            # si coincide, agregamos esta factura a la lista de resultados
+                                                            facturas_ventas_filtradas.append(venta_guardada)
+                                                        
+                                                        
+                                                        
+                                                    # al salir del ciclo, facturas_ventas_filtradas tiene solo las facturas que corresponden al mes y año buscados
+                                                    # ahora verificamos si encontramos alguna factura para ese periodo
+                                                    if len(facturas_ventas_filtradas) == 0:
+                                                        print(f'\nNo se encontraron facturas de ventas para {mes}/{anio}.\n')
+                                                        break#regresa al menu anterior
+                                                    
+                                                    # si encontramos facturas, las mostramos
+                                                    else:
+                                                        print(f'\n=== FACTURAS DE {mes:02d}/{anio} ===')
+                                                        print(f'Total de facturas encontradas: {len(facturas_ventas_filtradas)}')
+                                                        print('-'*110)
+                                                        for venta in facturas_ventas_filtradas:
+                                                            print(f'Factura de Venta: {venta.id_venta} | Empleado: {venta.empleado} | Fecha: {venta.fecha}')
+                                                            print(f'Cliente:{venta.cliente.nombre_cliente}  |  Telefono: {venta.cliente.telefono}  |  NIT/CC: {venta.cliente.documento}')
+                                                            print(f'{"Codigo":<9} {"Nombre":<20} {"Precio de venta":<20} {"Cantidad":<20} {"Total"}')
+                                                            print('-'*110)
+                                                            total_factura_venta=0
+                                                            for detalle in venta.productos_vendidos:
+                                                                total_factura_venta+=detalle.subtotal
+                                                                print(f'{detalle.id_detalle_ventas:<9} {detalle.objeto_producto.nombre:<20} {detalle.precio_venta:<20} {detalle.cantidad_vender:<20} ${detalle.subtotal}')   
+                                                            print('-'*110)
+                                                            print(f'{"TOTAL COMPRA:":<75} ${venta.total_venta}')
+                                                            print('-'*110)
+
+                                                elif op_buscar_ventas==2:#VER TODAS LAS FACTURAS DE VENTAS REGISTRADAS
+                                                    print(f'\n=== TODAS LAS FACTURAS DE VENTAS REGISTRADAS ===')
+                                                    print(f'Total de facturas de ventas: {len(inventario.lista_ventas)}')
+                                                    print('-'*110)
+                                                    for venta in inventario.lista_ventas:
+                                                        print(f'Factura de Venta: {venta.codigo_venta} | Empleado: {usuario_autenticado.nombre} | Fecha: {venta.fecha}')
+                                                        print(f'Cliente:{venta.cliente.nombre_cliente}  |  Telefono: {venta.cliente.telefono}  |  NIT/CC: {venta.cliente.documento}')
+                                                        print(f'{"Codigo":<9} {"Nombre":<20} {"Precio de venta":<20} {"Cantidad":<20} {"Total"}')
+                                                        print('-'*110)
+                                                        total_factura_venta=0
+                                                        for detalle in venta.productos_vendidos:
+                                                            total_factura_venta+=detalle.subtotal
+                                                            print(f'{detalle.id_detalle_ventas:<9} {detalle.objeto_producto.nombre:<20} {detalle.precio_venta:<20} {detalle.cantidad_vender:<20} ${detalle.subtotal}')   
+                                                        print('-'*110)
+                                                        print(f'{"TOTAL COMPRA:":<75} ${venta.total_venta}')
+                                                        print('-'*110)        
+                                                
+                                                
+                                                
+                                                
+                                                elif op_buscar_ventas==3:#REGRESAR AL MENU ANTERIOR
+                                                    break#regresa al menu anterior de ventas      
+                                            
+                                    elif op_ventas==3:#regresa al menu anterior
+                                        break#Regresa al menu de gestion de inventario
+                                    
                                 # Aquí llamaríamos a la función que maneja las ventas, pasando 'usuario' e 'inventario'.
-                                pass  # Reemplaza con la llamada a tu función de gestión de ventas
-                            
-                            
+                                
                             elif opcion_gestion == 4:
                                 print(f"¡Hasta luego, {usuario_autenticado.nombre}!")
                                 break

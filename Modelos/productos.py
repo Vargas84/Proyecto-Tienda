@@ -21,10 +21,6 @@ class Productos:
             self.disponibilidad="Disponible"    
             
             
-            
-            
-    
-        
     def aumentar_stock(self, cantidad):#aumentar el stock del producto
         if cantidad > 0:#si la cantidad es positiva se permite aumentar el stock
             self.stock+=cantidad
