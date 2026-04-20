@@ -46,8 +46,8 @@ class CompraService:
     y actualiza el inventario cuando una compra se confirma.
     """
 
-    def __init__(self, compra_repo: CompraRepository,
-                 producto_repo: ProductoRepository):
+    def __init__(self, compra_repo,
+                 producto_repo):  # acepta en memoria o SQL
         # Recibe DOS repositories porque las compras afectan tanto
         # las facturas como el inventario de productos.
         self._compra_repo   = compra_repo
@@ -223,6 +223,7 @@ class CompraService:
             es_nuevo=es_nuevo
         )
 
+        assert self._factura_actual is not None
         self._factura_actual.agregar_detalle(detalle)
         return detalle
 
@@ -239,9 +240,9 @@ class CompraService:
             ProductoNoEncontradoError: si no existe detalle con ese ID
         """
         detalle = self._buscar_detalle(id_detalle)
+        assert self._factura_actual is not None
         detalle.cantidad_compra = nueva_cantidad
         detalle.recalcular_subtotal()
-        assert self._factura_actual is not None
         # Recalculamos el total de la factura porque cambió un subtotal
         self._factura_actual.calcular_total()
         return detalle
@@ -252,9 +253,9 @@ class CompraService:
         Actualiza el precio de compra de un detalle y recalcula subtotal.
         """
         detalle = self._buscar_detalle(id_detalle)
+        assert self._factura_actual is not None
         detalle.precio_compra = nuevo_precio
         detalle.recalcular_subtotal()
-        assert self._factura_actual is not None
         self._factura_actual.calcular_total()
         return detalle
 
@@ -361,16 +362,13 @@ class CompraService:
     def _actualizar_producto_existente(self, detalle: DetalleCompra) -> None:
         """
         Suma stock y actualiza el precio de venta de un producto existente.
-
-        ANTES: estaba en el else del for de confirmación, con un for
-        anidado buscando el producto en inventario.lista_productos.
-        AHORA: usamos el método del modelo que ya tiene la lógica.
+        Con SQLite persiste el cambio llamando a actualizar() en el repo.
         """
-        # El producto en el detalle es la referencia directa al objeto
-        # en el inventario (lo encontramos al buscarlo en el repo).
-        # Modificarlo aquí modifica directamente el original.
         detalle.producto.aumentar_stock(detalle.cantidad_compra)
         detalle.producto.precio = detalle.precio_venta_nuevo
+        # Persistimos el cambio en la BD si el repo lo soporta
+        if hasattr(self._producto_repo, 'actualizar'):
+            self._producto_repo.actualizar(detalle.producto)  # type: ignore[union-attr]
 
     def _buscar_detalle(self, id_detalle: int) -> DetalleCompra:
         """
@@ -405,8 +403,8 @@ class CompraService:
         en la factura activa.
         ANTES: la bandera encontrado_en_factura + bucle for inline.
         """
-        nombre_normalizado = nombre.lower().replace(" ", "")
         assert self._factura_actual is not None
+        nombre_normalizado = nombre.lower().replace(" ", "")
         for detalle in self._factura_actual.lista_detalles:
             if detalle.producto.nombre.lower().replace(
                 " ", ""

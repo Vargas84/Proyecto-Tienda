@@ -34,6 +34,7 @@
 
 from models.usuario import Usuario
 from repositories.usuario_repository import UsuarioRepository
+from typing import Union
 from exceptions.app_exceptions import (
     UsuarioYaExisteError,
     UsuarioNoEncontradoError,
@@ -49,7 +50,7 @@ class AuthService:
     aplicando las reglas de negocio del sistema.
     """
 
-    def __init__(self, usuario_repo: UsuarioRepository):
+    def __init__(self, usuario_repo):  # acepta en memoria o SQL
         # Guardamos la referencia al repository como atributo privado.
         # El service NUNCA accede directamente a listas — siempre pasa
         # por el repository. Así cumplimos el DIP.

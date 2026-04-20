@@ -43,8 +43,8 @@ class VentaService:
     y descuenta el stock del inventario al confirmar.
     """
 
-    def __init__(self, venta_repo: VentaRepository,
-                 producto_repo: ProductoRepository):
+    def __init__(self, venta_repo,
+                 producto_repo):  # acepta en memoria o SQL
         self._venta_repo   = venta_repo
         self._producto_repo = producto_repo
         self._factura_actual: Venta | None = None
@@ -120,6 +120,9 @@ class VentaService:
         # buscando cada producto en inventario.lista_productos.
         for detalle in self._factura_actual.productos_vendidos:
             detalle.objeto_producto.disminuir_stock(detalle.cantidad_vender)
+            # Persistimos el descuento de stock en la BD si el repo lo soporta
+            if hasattr(self._producto_repo, 'actualizar'):
+                self._producto_repo.actualizar(detalle.objeto_producto)  # type: ignore[union-attr]
 
         # Cerramos la factura
         self._factura_actual.calcular_total()
@@ -190,6 +193,7 @@ class VentaService:
         id_detalle = self._venta_repo.generar_id_detalle()
         detalle = DetalleVenta(id_detalle, producto, cantidad)
 
+        assert self._factura_actual is not None
         self._factura_actual.agregar_detalle(detalle)
         return detalle
 
@@ -296,8 +300,8 @@ class VentaService:
         Lanza ProductoDuplicadoEnFacturaError si el producto ya está
         en la factura activa.
         """
-        nombre_normalizado = nombre.lower().replace(" ", "")
         assert self._factura_actual is not None
+        nombre_normalizado = nombre.lower().replace(" ", "")
         for detalle in self._factura_actual.productos_vendidos:
             if detalle.objeto_producto.nombre.lower().replace(
                 " ", ""
