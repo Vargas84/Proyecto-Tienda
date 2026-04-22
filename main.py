@@ -1,130 +1,71 @@
 # =============================================================================
-# main.py
+# main.py — Punto de entrada con interfaz gráfica PyQt6
 # =============================================================================
-# PUNTO DE ENTRADA ÚNICO DEL SISTEMA DE INVENTARIOS
-#
-# ¿QUÉ CAMBIÓ RESPECTO A LA VERSIÓN ANTERIOR?
-# Solo 4 líneas en construir_sistema() — los repositories en memoria
-# se reemplazan por los SQL. Todo lo demás queda exactamente igual.
-# Eso es el DIP funcionando: ninguna capa superior sabe ni le importa
-# qué hay debajo.
-#
-# También se agrega cerrar() al salir para que SQLite escriba todos
-# los datos pendientes en disco antes de terminar el programa.
-# =============================================================================
+import sys
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtGui import QFont
 
-# --- Repositories SQL (versión con base de datos) ---
 from repositories.usuario_repository_sql  import UsuarioRepositorySQL
 from repositories.producto_repository_sql import ProductoRepositorySQL
 from repositories.compra_repository_sql   import CompraRepositorySQL
 from repositories.venta_repository_sql    import VentaRepositorySQL
-
-# --- Conexión (para cerrar al salir) ---
 from repositories.db.conexion import cerrar
 
-# --- Services (no cambian) ---
 from services.auth_service     import AuthService
 from services.producto_service import ProductoService
 from services.compra_service   import CompraService
 from services.venta_service    import VentaService
 
-# --- UI (no cambia) ---
-from ui.auth_ui       import AuthUI
-from ui.inventario_ui import InventarioUI
-from ui.compra_ui     import CompraUI
-from ui.venta_ui      import VentaUI
+from ui_qt.login_window import LoginWindow
+from ui_qt.main_window  import MainWindow
 
 
-def construir_sistema():
-    """
-    Crea e interconecta todas las capas del sistema.
+def main():
+    app = QApplication(sys.argv)
 
-    CAMBIO RESPECTO A LA VERSIÓN ANTERIOR:
-    Antes usábamos repositories en memoria (listas).
-    Ahora usamos repositories SQL (SQLite).
-    Los services y la UI no saben que cambió nada — DIP en acción.
-    """
-    # -------------------------------------------------------------------------
-    # CAPA 1: REPOSITORIES SQL
-    # Cada uno se conecta a la BD a través del singleton de conexion.py.
-    # La BD se crea automáticamente si no existe (inventario.db).
-    # -------------------------------------------------------------------------
-    repo_usuarios  = UsuarioRepositorySQL()
-    repo_productos = ProductoRepositorySQL()
-    repo_compras   = CompraRepositorySQL()
-    repo_ventas    = VentaRepositorySQL()
+    # Fuente global del sistema
+    fuente = QFont("Segoe UI", 10)
+    app.setFont(fuente)
 
-    # -------------------------------------------------------------------------
-    # CAPA 2: SERVICES — exactamente igual que antes
-    # -------------------------------------------------------------------------
-    auth_svc   = AuthService(repo_usuarios)
-    prod_svc   = ProductoService(repo_productos)
-    compra_svc = CompraService(repo_compras, repo_productos)
-    venta_svc  = VentaService(repo_ventas, repo_productos)
+    # Construir services
+    repo_u = UsuarioRepositorySQL()
+    repo_p = ProductoRepositorySQL()
+    repo_c = CompraRepositorySQL()
+    repo_v = VentaRepositorySQL()
 
-    # -------------------------------------------------------------------------
-    # CAPA 3: UI — exactamente igual que antes
-    # -------------------------------------------------------------------------
-    auth_ui       = AuthUI(auth_svc)
-    inventario_ui = InventarioUI(prod_svc)
-    compra_ui     = CompraUI(compra_svc, auth_ui)
-    venta_ui      = VentaUI(venta_svc, prod_svc, auth_ui)
+    auth_svc   = AuthService(repo_u)
+    prod_svc   = ProductoService(repo_p)
+    compra_svc = CompraService(repo_c, repo_p)
+    venta_svc  = VentaService(repo_v, repo_p)
 
-    return auth_ui, inventario_ui, compra_ui, venta_ui
+    # Ventana de login
+    login_win = LoginWindow(auth_svc)
 
+    # Referencia a ventana principal (para mantenerla viva)
+    main_win_ref = [None]
 
-def menu_gestion(usuario, inventario_ui: InventarioUI,
-                 compra_ui: CompraUI, venta_ui: VentaUI) -> None:
-    """Menú principal después del login exitoso."""
-    while True:
-        print(f"\n======== MENÚ DE GESTIÓN "
-              f"(Usuario: {usuario.nombre}) ========")
-        print("1. Inventario")
-        print("2. Registrar entrada (Compra)")
-        print("3. Registrar salida (Venta)")
-        print("4. Cerrar sesión")
+    def abrir_main(usuario):
+        """Se ejecuta cuando el login es exitoso."""
+        login_win.hide()
+        main_win = MainWindow(
+            usuario, auth_svc, prod_svc, compra_svc, venta_svc
+        )
+        main_win_ref[0] = main_win
 
-        from ui.ui_utils import pedir_opcion
-        opcion = pedir_opcion("Seleccione una opción: ", 1, 4)
+        def volver_a_login():
+            main_win_ref[0] = None
+            login_win.show()
 
-        if opcion == 1:
-            inventario_ui.ejecutar()
-        elif opcion == 2:
-            compra_ui.ejecutar(usuario.nombre)
-        elif opcion == 3:
-            venta_ui.ejecutar(usuario.nombre)
-        elif opcion == 4:
-            print(f"\n¡Hasta luego, {usuario.nombre}!")
-            break
+        main_win.cerrar_sesion.connect(volver_a_login)
+        main_win.show()
 
-
-def main() -> None:
-    """
-    Función principal. Arranca el sistema.
-    Al salir cierra la conexión a la BD para garantizar
-    que todos los datos se escriben en disco.
-    """
-    print("=" * 50)
-    print("  SISTEMA DE INVENTARIOS".center(50))
-    print("=" * 50)
-
-    auth_ui, inventario_ui, compra_ui, venta_ui = construir_sistema()
+    login_win.login_exitoso.connect(abrir_main)
+    login_win.show()
 
     try:
-        while True:
-            usuario = auth_ui.ejecutar()
-
-            if usuario is None:
-                break
-
-            menu_gestion(usuario, inventario_ui, compra_ui, venta_ui)
-
+        sys.exit(app.exec())
     finally:
-        # finally garantiza que cerrar() se ejecuta SIEMPRE,
-        # incluso si ocurre un error inesperado en el sistema.
-        # Así SQLite siempre hace flush de los datos pendientes.
         cerrar()
-        print("\nConexión a la base de datos cerrada.")
 
 
 if __name__ == "__main__":
