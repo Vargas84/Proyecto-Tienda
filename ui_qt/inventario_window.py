@@ -1,11 +1,6 @@
 # =============================================================================
 # ui_qt/inventario_window.py
 # =============================================================================
-# Módulo de gestión del inventario de productos.
-# Muestra todos los productos en una tabla y permite agregar,
-# editar disponibilidad y modificar atributos.
-# =============================================================================
-
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTableWidget, QTableWidgetItem, QHeaderView, QFrame,
@@ -40,7 +35,6 @@ class InventarioWindow(QWidget):
         lay.setContentsMargins(28, 24, 28, 24)
         lay.setSpacing(16)
 
-        # Encabezado
         header = QHBoxLayout()
         titulo = QLabel("Inventario de productos")
         titulo.setStyleSheet(styles.label_title())
@@ -58,7 +52,6 @@ class InventarioWindow(QWidget):
         subtitulo.setStyleSheet(styles.label_subtitle())
         lay.addWidget(subtitulo)
 
-        # Tabla
         self._tabla = QTableWidget()
         self._tabla.setStyleSheet(styles.table_style())
         self._tabla.setColumnCount(7)
@@ -66,27 +59,28 @@ class InventarioWindow(QWidget):
             "Código", "Nombre", "Precio", "Stock",
             "Categoría", "Disponibilidad", "Acciones"
         ])
-        self._tabla.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
-        self._tabla.horizontalHeader().setSectionResizeMode(
-            0, QHeaderView.ResizeMode.ResizeToContents
-        )
-        self._tabla.horizontalHeader().setSectionResizeMode(
-            6, QHeaderView.ResizeMode.ResizeToContents
-        )
+
+        # Guardamos el header en variable con assert para que Pylance
+        # sepa que no es None antes de llamar setSectionResizeMode.
+        _header = self._tabla.horizontalHeader()
+        assert _header is not None
+        _header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        _header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        _header.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)
+
         self._tabla.setSelectionBehavior(
             QTableWidget.SelectionBehavior.SelectRows
         )
         self._tabla.setEditTriggers(
             QTableWidget.EditTrigger.NoEditTriggers
         )
-        self._tabla.verticalHeader().setVisible(False)
+        _vheader = self._tabla.verticalHeader()
+        assert _vheader is not None
+        _vheader.setVisible(False)
         self._tabla.setAlternatingRowColors(True)
         lay.addWidget(self._tabla)
 
     def _cargar_productos(self):
-        """Recarga la tabla con los productos actuales del repository."""
         productos = self._prod_svc.obtener_todos()
         self._tabla.setRowCount(len(productos))
 
@@ -97,7 +91,6 @@ class InventarioWindow(QWidget):
             self._tabla.setItem(fila, 3, self._celda(str(p.stock)))
             self._tabla.setItem(fila, 4, self._celda(p.categoria))
 
-            # Disponibilidad con color
             disp_item = QTableWidgetItem(p.disponibilidad)
             disp_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             if p.disponibilidad == "Disponible":
@@ -106,12 +99,10 @@ class InventarioWindow(QWidget):
                 disp_item.setForeground(QColor("#DC2626"))
             self._tabla.setItem(fila, 5, disp_item)
 
-            # Botones de acción en la columna Acciones
             self._tabla.setCellWidget(fila, 6, self._acciones(p))
             self._tabla.setRowHeight(fila, 48)
 
     def _acciones(self, producto) -> QWidget:
-        """Crea los botones de acción para cada fila."""
         w = QWidget()
         lay = QHBoxLayout(w)
         lay.setContentsMargins(4, 4, 4, 4)
@@ -145,7 +136,6 @@ class InventarioWindow(QWidget):
     # -------------------------------------------------------------------------
 
     def _dlg_agregar(self):
-        """Diálogo para agregar un nuevo producto."""
         dlg = QDialog(self)
         dlg.setWindowTitle("Agregar producto")
         dlg.setFixedSize(380, 320)
@@ -187,7 +177,6 @@ class InventarioWindow(QWidget):
         btns.addWidget(btn_cancel)
         btns.addWidget(btn_ok)
         lay.addLayout(btns)
-
         dlg.exec()
 
     def _guardar_producto(self, dlg, inp_nombre, inp_precio,
@@ -210,8 +199,7 @@ class InventarioWindow(QWidget):
                 return
 
         if not self._prod_svc.nombre_disponible(nombre):
-            QMessageBox.warning(self, "Error",
-                                f"'{nombre}' ya está registrado.")
+            QMessageBox.warning(self, "Error", f"'{nombre}' ya está registrado.")
             return
 
         try:
@@ -228,7 +216,6 @@ class InventarioWindow(QWidget):
             QMessageBox.warning(self, "Error", str(e))
 
     def _dlg_editar(self, producto):
-        """Diálogo para editar atributos de un producto."""
         dlg = QDialog(self)
         dlg.setWindowTitle(f"Editar: {producto.nombre}")
         dlg.setFixedSize(380, 320)
@@ -274,7 +261,6 @@ class InventarioWindow(QWidget):
         btns.addWidget(btn_cancel)
         btns.addWidget(btn_ok)
         lay.addLayout(btns)
-
         dlg.exec()
 
     def _guardar_edicion(self, dlg, producto, inp_nombre, inp_precio,

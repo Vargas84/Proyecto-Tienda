@@ -1,10 +1,6 @@
 # =============================================================================
 # ui_qt/compras_window.py
 # =============================================================================
-# Módulo de registro de compras (entradas al inventario).
-# Permite crear facturas, agregar productos y confirmar.
-# =============================================================================
-
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTableWidget, QTableWidgetItem, QHeaderView, QFrame,
@@ -19,7 +15,8 @@ from services.producto_service import ProductoService
 from services.auth_service     import AuthService
 from models.proveedor import Proveedor
 from validators.campo_validator import (
-    NombreValidator, PrecioValidator, CantidadValidator, CategoriaValidator
+    NombreValidator, PrecioValidator, CantidadValidator, CategoriaValidator,
+    DocumentoValidator, TelefonoValidator
 )
 from exceptions.app_exceptions import AppError
 from ui_qt import styles
@@ -32,12 +29,12 @@ class ComprasWindow(QWidget):
                  prod_svc: ProductoService,
                  auth_svc: AuthService):
         super().__init__()
-        self._compra_svc = compra_svc
-        self._prod_svc   = prod_svc
-        self._auth_svc   = auth_svc
-        self._v_nombre   = NombreValidator()
-        self._v_precio   = PrecioValidator()
-        self._v_cantidad = CantidadValidator()
+        self._compra_svc  = compra_svc
+        self._prod_svc    = prod_svc
+        self._auth_svc    = auth_svc
+        self._v_nombre    = NombreValidator()
+        self._v_precio    = PrecioValidator()
+        self._v_cantidad  = CantidadValidator()
         self._v_categoria = CategoriaValidator()
         self._factura_activa = None
         self._construir_ui()
@@ -47,7 +44,6 @@ class ComprasWindow(QWidget):
         lay.setContentsMargins(28, 24, 28, 24)
         lay.setSpacing(16)
 
-        # Encabezado
         titulo = QLabel("Registro de compras")
         titulo.setStyleSheet(styles.label_title())
         lay.addWidget(titulo)
@@ -55,7 +51,6 @@ class ComprasWindow(QWidget):
         sub.setStyleSheet(styles.label_subtitle())
         lay.addWidget(sub)
 
-        # Pestañas: Nueva compra / Historial
         tabs = QTabWidget()
         tabs.setStyleSheet(f"""
             QTabWidget::pane {{
@@ -90,21 +85,18 @@ class ComprasWindow(QWidget):
         lay.setContentsMargins(20, 20, 20, 20)
         lay.setSpacing(12)
 
-        # Botón iniciar factura
         self._btn_iniciar = QPushButton("📄 Iniciar nueva factura de compra")
         self._btn_iniciar.setStyleSheet(styles.btn_primary())
         self._btn_iniciar.setFixedHeight(42)
         self._btn_iniciar.clicked.connect(self._iniciar_factura)
         lay.addWidget(self._btn_iniciar)
 
-        # Info factura activa
         self._lbl_factura = QLabel("No hay una factura activa.")
         self._lbl_factura.setStyleSheet(
             f"color: {styles.COLOR_TEXT_MUTED}; font-size: 13px;"
         )
         lay.addWidget(self._lbl_factura)
 
-        # Tabla de productos en la factura
         self._tabla_factura = QTableWidget()
         self._tabla_factura.setStyleSheet(styles.table_style())
         self._tabla_factura.setColumnCount(6)
@@ -112,16 +104,20 @@ class ComprasWindow(QWidget):
             "Cód.", "Producto", "Cantidad",
             "P. Compra", "P. Venta", "Subtotal"
         ])
-        self._tabla_factura.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
-        self._tabla_factura.verticalHeader().setVisible(False)
+        # assert garantiza a Pylance que horizontalHeader() no es None
+        _hf = self._tabla_factura.horizontalHeader()
+        assert _hf is not None
+        _hf.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        _vf = self._tabla_factura.verticalHeader()
+        assert _vf is not None
+        _vf.setVisible(False)
+
         self._tabla_factura.setEditTriggers(
             QTableWidget.EditTrigger.NoEditTriggers
         )
         lay.addWidget(self._tabla_factura)
 
-        # Total
         self._lbl_total = QLabel("Total: $0")
         self._lbl_total.setStyleSheet(
             f"font-size: 16px; font-weight: bold; color: {styles.COLOR_TEXT};"
@@ -129,7 +125,6 @@ class ComprasWindow(QWidget):
         self._lbl_total.setAlignment(Qt.AlignmentFlag.AlignRight)
         lay.addWidget(self._lbl_total)
 
-        # Botones de acción
         btns = QHBoxLayout()
 
         self._btn_agregar_prod = QPushButton("+ Agregar producto")
@@ -165,14 +160,14 @@ class ComprasWindow(QWidget):
         lay.setContentsMargins(20, 20, 20, 20)
         lay.setSpacing(12)
 
-        header = QHBoxLayout()
-        header.addWidget(QLabel("Facturas de compra confirmadas"))
-        header.addStretch()
+        hdr = QHBoxLayout()
+        hdr.addWidget(QLabel("Facturas de compra confirmadas"))
+        hdr.addStretch()
         btn_ref = QPushButton("↻ Actualizar")
         btn_ref.setStyleSheet(styles.btn_secondary())
         btn_ref.clicked.connect(self._cargar_historial)
-        header.addWidget(btn_ref)
-        lay.addLayout(header)
+        hdr.addWidget(btn_ref)
+        lay.addLayout(hdr)
 
         self._tabla_historial = QTableWidget()
         self._tabla_historial.setStyleSheet(styles.table_style())
@@ -180,10 +175,15 @@ class ComprasWindow(QWidget):
         self._tabla_historial.setHorizontalHeaderLabels([
             "ID", "Proveedor", "Empleado", "Fecha", "Total"
         ])
-        self._tabla_historial.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
-        self._tabla_historial.verticalHeader().setVisible(False)
+
+        _hh = self._tabla_historial.horizontalHeader()
+        assert _hh is not None
+        _hh.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        _vh = self._tabla_historial.verticalHeader()
+        assert _vh is not None
+        _vh.setVisible(False)
+
         self._tabla_historial.setEditTriggers(
             QTableWidget.EditTrigger.NoEditTriggers
         )
@@ -264,18 +264,10 @@ class ComprasWindow(QWidget):
             self._tabla_factura.setItem(
                 i, 1, self._celda(f"{d.producto.nombre} ({tipo})")
             )
-            self._tabla_factura.setItem(
-                i, 2, self._celda(str(d.cantidad_compra))
-            )
-            self._tabla_factura.setItem(
-                i, 3, self._celda(f"${d.precio_compra:,.0f}")
-            )
-            self._tabla_factura.setItem(
-                i, 4, self._celda(f"${d.precio_venta_nuevo:,.0f}")
-            )
-            self._tabla_factura.setItem(
-                i, 5, self._celda(f"${d.subtotal:,.0f}")
-            )
+            self._tabla_factura.setItem(i, 2, self._celda(str(d.cantidad_compra)))
+            self._tabla_factura.setItem(i, 3, self._celda(f"${d.precio_compra:,.0f}"))
+            self._tabla_factura.setItem(i, 4, self._celda(f"${d.precio_venta_nuevo:,.0f}"))
+            self._tabla_factura.setItem(i, 5, self._celda(f"${d.subtotal:,.0f}"))
             total += d.subtotal
             self._tabla_factura.setRowHeight(i, 44)
         self._lbl_total.setText(f"Total: ${total:,.0f}")
@@ -313,10 +305,11 @@ class ComprasWindow(QWidget):
         lay.addLayout(form)
 
         lbl_info = QLabel("")
-        lbl_info.setStyleSheet(f"color: {styles.COLOR_TEXT_MUTED}; font-size: 11px;")
+        lbl_info.setStyleSheet(
+            f"color: {styles.COLOR_TEXT_MUTED}; font-size: 11px;"
+        )
         lay.addWidget(lbl_info)
 
-        # Al escribir el nombre, buscamos si existe en inventario
         def buscar_producto():
             nombre = inp_nombre.text().strip()
             if not nombre:
@@ -386,8 +379,7 @@ class ComprasWindow(QWidget):
 
     def _dlg_confirmar(self):
         if not self._factura_activa or not self._factura_activa.lista_detalles:
-            QMessageBox.warning(self, "Error",
-                                "La factura no tiene productos.")
+            QMessageBox.warning(self, "Error", "La factura no tiene productos.")
             return
 
         dlg = QDialog(self)
@@ -434,15 +426,13 @@ class ComprasWindow(QWidget):
         doc    = inp_doc.text().strip()
         tel    = inp_tel.text().strip()
 
-        v_nom = NombreValidator()
-        from validators.campo_validator import DocumentoValidator, TelefonoValidator
         v_doc = DocumentoValidator()
         v_tel = TelefonoValidator()
 
         for valor, validator, campo in [
-            (nombre, v_nom, "nombre"),
-            (doc,    v_doc, "documento"),
-            (tel,    v_tel, "teléfono"),
+            (nombre, NombreValidator(), "nombre"),
+            (doc,    v_doc,            "documento"),
+            (tel,    v_tel,            "teléfono"),
         ]:
             try:
                 validator.validar(valor)

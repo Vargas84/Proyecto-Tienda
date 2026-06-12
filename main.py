@@ -42,8 +42,7 @@ def main():
     login_win = LoginWindow(auth_svc)
 
     # Referencia a ventana principal (para mantenerla viva)
-    main_win_ref = [None]
-
+    main_win_ref: list = [None]
     def abrir_main(usuario):
         """Se ejecuta cuando el login es exitoso."""
         login_win.hide()

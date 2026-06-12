@@ -1,5 +1,11 @@
 {
-  "pythonVersion": "3.10",
+  "pythonVersion": "3.13",
+  "pythonPath": "C:/Users/Julieth Vargas/AppData/Roaming/Python/Python313",
   "include": ["."],
-  "extraPaths": ["."]
+  "extraPaths": [
+    ".",
+    "C:/Users/Julieth Vargas/AppData/Roaming/Python/Python313/site-packages"
+  ],
+  "reportMissingModuleSource": "none",
+  "reportMissingImports": "none"
 }

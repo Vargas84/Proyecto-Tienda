@@ -1,10 +1,6 @@
 # =============================================================================
 # ui_qt/login_window.py
 # =============================================================================
-# Ventana de inicio de sesión y registro de usuarios.
-# Reemplaza auth_ui.py de la consola.
-# =============================================================================
-
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QFrame, QMessageBox,
@@ -29,22 +25,28 @@ class LoginWindow(QMainWindow):
     """
     Ventana principal de autenticación.
     Tiene dos vistas: login y registro, alternadas con QStackedWidget.
-
     Emite la señal login_exitoso(usuario) cuando el login es correcto.
-    La ventana principal escucha esa señal para abrir el menú de gestión.
     """
 
-    # Señal que lleva el objeto Usuario autenticado
     login_exitoso = pyqtSignal(object)
 
     def __init__(self, auth_service: AuthService):
         super().__init__()
         self._auth = auth_service
-        self._v_nombre    = NombreValidator()
-        self._v_documento = DocumentoValidator()
-        self._v_telefono  = TelefonoValidator()
-        self._v_correo    = CorreoValidator()
+        self._v_nombre     = NombreValidator()
+        self._v_documento  = DocumentoValidator()
+        self._v_telefono   = TelefonoValidator()
+        self._v_correo     = CorreoValidator()
         self._v_contrasena = ContrasenaValidator()
+
+        # Declaramos los atributos aquí para que Pylance los reconozca.
+        # Si se declaran dentro de _vista_registro() con setattr(),
+        # Pylance no puede inferir su tipo y los marca como desconocidos.
+        self._inp_nombre:    QLineEdit = QLineEdit()
+        self._inp_doc_reg:   QLineEdit = QLineEdit()
+        self._inp_tel:       QLineEdit = QLineEdit()
+        self._inp_correo:    QLineEdit = QLineEdit()
+        self._inp_pass_reg:  QLineEdit = QLineEdit()
 
         self._construir_ui()
 
@@ -53,14 +55,12 @@ class LoginWindow(QMainWindow):
         self.setFixedSize(420, 580)
         self.setStyleSheet(f"background-color: {styles.COLOR_BG};")
 
-        # Widget central
         central = QWidget()
         self.setCentralWidget(central)
         layout = QVBoxLayout(central)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.setContentsMargins(40, 40, 40, 40)
 
-        # Logo / título
         titulo = QLabel("📦 Sistema de Inventarios")
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         titulo.setStyleSheet(
@@ -75,7 +75,6 @@ class LoginWindow(QMainWindow):
         layout.addWidget(subtitulo)
         layout.addSpacing(24)
 
-        # Tarjeta contenedora
         card = QFrame()
         card.setStyleSheet(f"""
             QFrame {{
@@ -88,7 +87,6 @@ class LoginWindow(QMainWindow):
         card_layout.setContentsMargins(28, 28, 28, 28)
         card_layout.setSpacing(12)
 
-        # Stack: vista login / vista registro
         self._stack = QStackedWidget()
         self._stack.addWidget(self._vista_login())
         self._stack.addWidget(self._vista_registro())
@@ -112,7 +110,6 @@ class LoginWindow(QMainWindow):
         lay.addWidget(titulo)
         lay.addSpacing(4)
 
-        # Documento
         lay.addWidget(self._label("Número de documento"))
         self._inp_doc_login = QLineEdit()
         self._inp_doc_login.setPlaceholderText("Ej: 12345678")
@@ -120,7 +117,6 @@ class LoginWindow(QMainWindow):
         self._inp_doc_login.setFixedHeight(40)
         lay.addWidget(self._inp_doc_login)
 
-        # Contraseña
         lay.addWidget(self._label("Contraseña"))
         self._inp_pass_login = QLineEdit()
         self._inp_pass_login.setPlaceholderText("Tu contraseña")
@@ -132,14 +128,12 @@ class LoginWindow(QMainWindow):
 
         lay.addSpacing(8)
 
-        # Botón login
         btn_login = QPushButton("Iniciar sesión")
         btn_login.setStyleSheet(styles.btn_primary())
         btn_login.setFixedHeight(42)
         btn_login.clicked.connect(self._hacer_login)
         lay.addWidget(btn_login)
 
-        # Link a registro
         lay.addSpacing(4)
         link = QPushButton("¿No tienes cuenta? Crear usuario")
         link.setStyleSheet(
@@ -167,24 +161,43 @@ class LoginWindow(QMainWindow):
         )
         lay.addWidget(titulo)
 
-        campos = [
-            ("Nombre completo",    "_inp_nombre",    "Ana García",     False),
-            ("Documento",          "_inp_doc_reg",   "12345678",       False),
-            ("Teléfono",           "_inp_tel",       "3001234567",     False),
-            ("Correo electrónico", "_inp_correo",    "ana@gmail.com",  False),
-            ("Contraseña",         "_inp_pass_reg",  "Mínimo 8 chars", True),
-        ]
+        # Campos declarados explícitamente (no con setattr en bucle)
+        # para que Pylance reconozca el tipo de cada atributo.
+        lay.addWidget(self._label("Nombre completo"))
+        self._inp_nombre = QLineEdit()
+        self._inp_nombre.setPlaceholderText("Ana García")
+        self._inp_nombre.setStyleSheet(styles.input_field())
+        self._inp_nombre.setFixedHeight(38)
+        lay.addWidget(self._inp_nombre)
 
-        for label_txt, attr, placeholder, es_pass in campos:
-            lay.addWidget(self._label(label_txt))
-            inp = QLineEdit()
-            inp.setPlaceholderText(placeholder)
-            inp.setStyleSheet(styles.input_field())
-            inp.setFixedHeight(38)
-            if es_pass:
-                inp.setEchoMode(QLineEdit.EchoMode.Password)
-            setattr(self, attr, inp)
-            lay.addWidget(inp)
+        lay.addWidget(self._label("Documento"))
+        self._inp_doc_reg = QLineEdit()
+        self._inp_doc_reg.setPlaceholderText("12345678")
+        self._inp_doc_reg.setStyleSheet(styles.input_field())
+        self._inp_doc_reg.setFixedHeight(38)
+        lay.addWidget(self._inp_doc_reg)
+
+        lay.addWidget(self._label("Teléfono"))
+        self._inp_tel = QLineEdit()
+        self._inp_tel.setPlaceholderText("3001234567")
+        self._inp_tel.setStyleSheet(styles.input_field())
+        self._inp_tel.setFixedHeight(38)
+        lay.addWidget(self._inp_tel)
+
+        lay.addWidget(self._label("Correo electrónico"))
+        self._inp_correo = QLineEdit()
+        self._inp_correo.setPlaceholderText("ana@gmail.com")
+        self._inp_correo.setStyleSheet(styles.input_field())
+        self._inp_correo.setFixedHeight(38)
+        lay.addWidget(self._inp_correo)
+
+        lay.addWidget(self._label("Contraseña"))
+        self._inp_pass_reg = QLineEdit()
+        self._inp_pass_reg.setPlaceholderText("Mínimo 8 chars")
+        self._inp_pass_reg.setStyleSheet(styles.input_field())
+        self._inp_pass_reg.setFixedHeight(38)
+        self._inp_pass_reg.setEchoMode(QLineEdit.EchoMode.Password)
+        lay.addWidget(self._inp_pass_reg)
 
         lay.addSpacing(6)
 
@@ -238,13 +251,12 @@ class LoginWindow(QMainWindow):
         correo   = self._inp_correo.text().strip()
         password = self._inp_pass_reg.text()
 
-        # Validamos cada campo con los validators
         for valor, validator, campo in [
-            (nombre,   self._v_nombre,    "nombre"),
-            (doc_str,  self._v_documento, "documento"),
-            (tel_str,  self._v_telefono,  "teléfono"),
-            (correo,   self._v_correo,    "correo"),
-            (password, self._v_contrasena,"contraseña"),
+            (nombre,   self._v_nombre,     "nombre"),
+            (doc_str,  self._v_documento,  "documento"),
+            (tel_str,  self._v_telefono,   "teléfono"),
+            (correo,   self._v_correo,     "correo"),
+            (password, self._v_contrasena, "contraseña"),
         ]:
             try:
                 validator.validar(valor)
@@ -257,12 +269,12 @@ class LoginWindow(QMainWindow):
                 nombre, int(doc_str), int(tel_str), correo, password
             )
             self._exito("Usuario creado correctamente. Ya puedes iniciar sesión.")
-            # Limpiar campos y volver a login
-            for attr in ['_inp_nombre','_inp_doc_reg','_inp_tel',
-                         '_inp_correo','_inp_pass_reg']:
-                getattr(self, attr).clear()
+            self._inp_nombre.clear()
+            self._inp_doc_reg.clear()
+            self._inp_tel.clear()
+            self._inp_correo.clear()
+            self._inp_pass_reg.clear()
             self._stack.setCurrentIndex(0)
-
         except UsuarioYaExisteError as e:
             self._error(str(e))
 

@@ -1,9 +1,6 @@
 # =============================================================================
 # ui_qt/ventas_window.py
 # =============================================================================
-# Módulo de registro de ventas (salidas del inventario).
-# =============================================================================
-
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTableWidget, QTableWidgetItem, QHeaderView,
@@ -97,17 +94,22 @@ class VentasWindow(QWidget):
         )
         lay.addWidget(self._lbl_factura)
 
-        # Tabla de productos en la factura
         self._tabla_factura = QTableWidget()
         self._tabla_factura.setStyleSheet(styles.table_style())
         self._tabla_factura.setColumnCount(5)
         self._tabla_factura.setHorizontalHeaderLabels([
             "Cód.", "Producto", "Precio unit.", "Cantidad", "Subtotal"
         ])
-        self._tabla_factura.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
-        self._tabla_factura.verticalHeader().setVisible(False)
+
+        # assert garantiza a Pylance que horizontalHeader() no es None
+        _hf = self._tabla_factura.horizontalHeader()
+        assert _hf is not None
+        _hf.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        _vf = self._tabla_factura.verticalHeader()
+        assert _vf is not None
+        _vf.setVisible(False)
+
         self._tabla_factura.setEditTriggers(
             QTableWidget.EditTrigger.NoEditTriggers
         )
@@ -155,14 +157,14 @@ class VentasWindow(QWidget):
         lay.setContentsMargins(20, 20, 20, 20)
         lay.setSpacing(12)
 
-        header = QHBoxLayout()
-        header.addWidget(QLabel("Facturas de venta confirmadas"))
-        header.addStretch()
+        hdr = QHBoxLayout()
+        hdr.addWidget(QLabel("Facturas de venta confirmadas"))
+        hdr.addStretch()
         btn_ref = QPushButton("↻ Actualizar")
         btn_ref.setStyleSheet(styles.btn_secondary())
         btn_ref.clicked.connect(self._cargar_historial)
-        header.addWidget(btn_ref)
-        lay.addLayout(header)
+        hdr.addWidget(btn_ref)
+        lay.addLayout(hdr)
 
         self._tabla_historial = QTableWidget()
         self._tabla_historial.setStyleSheet(styles.table_style())
@@ -170,10 +172,15 @@ class VentasWindow(QWidget):
         self._tabla_historial.setHorizontalHeaderLabels([
             "ID", "Cliente", "Empleado", "Fecha", "Total"
         ])
-        self._tabla_historial.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
-        self._tabla_historial.verticalHeader().setVisible(False)
+
+        _hh = self._tabla_historial.horizontalHeader()
+        assert _hh is not None
+        _hh.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        _vh = self._tabla_historial.verticalHeader()
+        assert _vh is not None
+        _vh.setVisible(False)
+
         self._tabla_historial.setEditTriggers(
             QTableWidget.EditTrigger.NoEditTriggers
         )
@@ -186,18 +193,14 @@ class VentasWindow(QWidget):
         ventas = self._venta_svc.obtener_todas_las_ventas()
         self._tabla_historial.setRowCount(len(ventas))
         for i, v in enumerate(ventas):
-            self._tabla_historial.setItem(
-                i, 0, self._celda(str(v.id_venta))
-            )
+            self._tabla_historial.setItem(i, 0, self._celda(str(v.id_venta)))
             self._tabla_historial.setItem(
                 i, 1, self._celda(
                     v.cliente.nombre_cliente if v.cliente else "-"
                 )
             )
             self._tabla_historial.setItem(i, 2, self._celda("-"))
-            self._tabla_historial.setItem(
-                i, 3, self._celda(v.fecha or "-")
-            )
+            self._tabla_historial.setItem(i, 3, self._celda(v.fecha or "-"))
             self._tabla_historial.setItem(
                 i, 4, self._celda(f"${v.total_venta:,.0f}")
             )
@@ -258,21 +261,11 @@ class VentasWindow(QWidget):
         self._tabla_factura.setRowCount(len(detalles))
         total = 0
         for i, d in enumerate(detalles):
-            self._tabla_factura.setItem(
-                i, 0, self._celda(str(d.id_detalle_ventas))
-            )
-            self._tabla_factura.setItem(
-                i, 1, self._celda(d.objeto_producto.nombre)
-            )
-            self._tabla_factura.setItem(
-                i, 2, self._celda(f"${d.precio_venta:,.0f}")
-            )
-            self._tabla_factura.setItem(
-                i, 3, self._celda(str(d.cantidad_vender))
-            )
-            self._tabla_factura.setItem(
-                i, 4, self._celda(f"${d.subtotal:,.0f}")
-            )
+            self._tabla_factura.setItem(i, 0, self._celda(str(d.id_detalle_ventas)))
+            self._tabla_factura.setItem(i, 1, self._celda(d.objeto_producto.nombre))
+            self._tabla_factura.setItem(i, 2, self._celda(f"${d.precio_venta:,.0f}"))
+            self._tabla_factura.setItem(i, 3, self._celda(str(d.cantidad_vender)))
+            self._tabla_factura.setItem(i, 4, self._celda(f"${d.subtotal:,.0f}"))
             total += d.subtotal
             self._tabla_factura.setRowHeight(i, 44)
         self._lbl_total.setText(f"Total: ${total:,.0f}")
@@ -373,8 +366,7 @@ class VentasWindow(QWidget):
 
     def _dlg_confirmar(self):
         if not self._factura_activa or not self._factura_activa.productos_vendidos:
-            QMessageBox.warning(self, "Error",
-                                "La factura no tiene productos.")
+            QMessageBox.warning(self, "Error", "La factura no tiene productos.")
             return
 
         dlg = QDialog(self)
@@ -421,14 +413,10 @@ class VentasWindow(QWidget):
         doc    = inp_doc.text().strip()
         tel    = inp_tel.text().strip()
 
-        v_nom = NombreValidator()
-        v_doc = DocumentoValidator()
-        v_tel = TelefonoValidator()
-
         for valor, validator, campo in [
-            (nombre, v_nom, "nombre"),
-            (doc,    v_doc, "documento"),
-            (tel,    v_tel, "teléfono"),
+            (nombre, NombreValidator(),    "nombre"),
+            (doc,    DocumentoValidator(), "documento"),
+            (tel,    TelefonoValidator(),  "teléfono"),
         ]:
             try:
                 validator.validar(valor)
