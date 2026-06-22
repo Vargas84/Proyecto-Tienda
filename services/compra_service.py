@@ -135,7 +135,7 @@ class CompraService:
             '%d/%m/%Y %H:%M:%S'
         )
         self._factura_actual.proveedor = proveedor
-
+        self._factura_actual.empleado_nombre = empleado_nombre
         # Actualizamos el inventario según cada detalle
         for detalle in self._factura_actual.lista_detalles:
             if detalle.es_nuevo:

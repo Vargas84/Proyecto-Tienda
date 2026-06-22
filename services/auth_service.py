@@ -134,7 +134,8 @@ class AuthService:
             # de seguridad: no revelar si el error es en el documento
             # o en la contraseña.
             raise UsuarioNoEncontradoError(
-                "Documento o contraseña incorrectos"
+                "Este documento no está registrado\n"
+                "Debes crear una cuenta o verificar tus datos."
             )
 
         # Paso 2: verificar la contraseña usando el método del modelo

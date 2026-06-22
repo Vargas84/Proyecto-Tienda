@@ -26,6 +26,36 @@ def main():
     # Fuente global del sistema
     fuente = QFont("Segoe UI", 10)
     app.setFont(fuente)
+    
+    from ui_qt import styles
+    app.setStyleSheet(f"""
+        QMessageBox {{
+            background-color: {styles.COLOR_SURFACE};
+        }}
+        QMessageBox QLabel {{
+            color: {styles.COLOR_TEXT};
+            font-size: 13px;
+            background-color: transparent;
+        }}
+        QMessageBox QPushButton {{
+            background-color: {styles.COLOR_PRIMARY};
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 18px;
+            font-size: 13px;
+            font-weight: bold;
+            min-width: 80px;
+            min-height: 24px;
+        }}
+        QMessageBox QPushButton:hover {{
+            background-color: {styles.COLOR_PRIMARY_DARK};
+        }}
+        
+        QMessageBox QPushButton:default {{
+        background-color: {styles.COLOR_PRIMARY};
+    }}
+    """)
 
     # Construir services
     repo_u = UsuarioRepositorySQL()

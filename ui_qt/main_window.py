@@ -68,12 +68,9 @@ class MainWindow(QMainWindow):
         from ui_qt.ventas_window     import VentasWindow
 
         self._inventario_win = InventarioWindow(self._prod_svc)
-        self._compras_win    = ComprasWindow(
-            self._compra_svc, self._prod_svc, self._auth_svc
-        )
-        self._ventas_win     = VentasWindow(
-            self._venta_svc, self._prod_svc, self._auth_svc
-        )
+        self._compras_win    = ComprasWindow(self._compra_svc, self._prod_svc, self._auth_svc, self._usuario)
+        self._ventas_win     = VentasWindow(self._venta_svc, self._prod_svc, self._auth_svc, self._usuario)
+
 
         self._stack.addWidget(self._inventario_win)  # índice 0
         self._stack.addWidget(self._compras_win)     # índice 1
@@ -124,9 +121,9 @@ class MainWindow(QMainWindow):
 
         # Botones de módulos
         modulos = [
-            ("📋  Inventario",    0),
-            ("📦  Compras",       1),
-            ("🛒  Ventas",        2),
+            ("  Inventario",    0),
+            ("  Compras",       1),
+            ("  Ventas",        2),
         ]
 
         self._btns_modulo = []
@@ -138,7 +135,7 @@ class MainWindow(QMainWindow):
         lay.addStretch()
 
         # Botón cerrar sesión
-        btn_salir = QPushButton("↩  Cerrar sesión")
+        btn_salir = QPushButton(" Cerrar sesión")
         btn_salir.setStyleSheet(f"""
             QPushButton {{
                 color: #94A3B8;
@@ -181,6 +178,8 @@ class MainWindow(QMainWindow):
 
     def _cambiar_modulo(self, idx: int):
         self._stack.setCurrentIndex(idx)
+        if idx == 0:
+            self._inventario_win._cargar_productos()
         # Resaltar el botón activo
         for i, btn in enumerate(self._btns_modulo):
             if i == idx:

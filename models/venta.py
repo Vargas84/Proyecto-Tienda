@@ -33,6 +33,7 @@ class Venta:
         id_venta (int): identificador único de la factura.
         cliente: objeto Cliente asociado (None hasta confirmar).
         fecha (str | None): fecha/hora de confirmación.
+        empleado_nombre (str | None): nombre del empleado que confirma.
         productos_vendidos (list): lista de objetos DetalleVenta.
         total_venta (float): suma de todos los subtotales.
         venta_confirmada (bool): True cuando la factura fue cerrada.
@@ -42,11 +43,11 @@ class Venta:
         self.id_venta          = id_venta
         self.cliente: Cliente  | None  = None     # Se asigna al confirmar
         self.fecha:str         | None  = None     # Se asigna al confirmar
+        self.empleado_nombre:str | None = None    # Se asigna al confirmar
         # CORRECCIÓN: lista en __init__ para que cada Venta tenga la suya.
         self.productos_vendidos = []
         self.total_venta       = 0
         self.venta_confirmada  = False
-
     @property
     def codigo_venta(self):
         """

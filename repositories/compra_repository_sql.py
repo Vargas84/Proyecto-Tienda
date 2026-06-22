@@ -113,9 +113,9 @@ class CompraRepositorySQL(BaseRepository):
                 VALUES (?, ?, ?, ?)
                 """,
                 (id_proveedor,
-                 compra.proveedor.nombre_empresa,  # guardamos el nombre como texto
-                 compra.fecha_hora,
-                 compra.total_factura)
+                compra.empleado_nombre,  # nombre del EMPLEADO que confirma, no del proveedor
+                compra.fecha_hora,
+                compra.total_factura)
             )
             id_factura = cursor_factura.lastrowid
             assert id_factura is not None
@@ -249,8 +249,9 @@ class CompraRepositorySQL(BaseRepository):
         """
         # Reconstruimos el objeto Compra
         compra = Compra(fila["id"])
-        compra.fecha_hora       = fila["fecha_hora"]
-        compra.total_factura    = fila["total"]
+        compra.fecha_hora        = fila["fecha_hora"]
+        compra.empleado_nombre   = fila["empleado_nombre"]
+        compra.total_factura     = fila["total"]
         compra.factura_confirmada = True
 
         # Reconstruimos el Proveedor

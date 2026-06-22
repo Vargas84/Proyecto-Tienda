@@ -41,6 +41,7 @@ class Compra:
     """
 
     def __init__(self, id_factura: int):
+        self.empleado_nombre: str | None = None  # Se asigna al confirmar, para mostrar en historial sin JOIN
         self.id_factura        = id_factura
         self.proveedor: Proveedor  | None = None       # Se asigna al confirmar
         # CORRECCIÓN: lista definida en __init__, no como atributo de clase.

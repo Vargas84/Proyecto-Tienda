@@ -198,3 +198,79 @@ def combo_style() -> str:
             border: none;
         }}
     """
+    
+def msgbox_style() -> str:
+    """Estilo para QMessageBox (warning, information, question)."""
+    return f"""
+        QMessageBox {{
+            background-color: {COLOR_SURFACE};
+        }}
+        QMessageBox QLabel {{
+            color: {COLOR_TEXT};
+            font-size: 13px;
+        }}
+        QMessageBox QPushButton {{
+            background-color: {COLOR_PRIMARY};
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 20px;
+            font-size: 13px;
+            font-weight: bold;
+            min-width: 70px;
+        }}
+        QMessageBox QPushButton:hover {{
+            background-color: {COLOR_PRIMARY_DARK};
+        }}
+    """
+def mostrar_mensaje(parent, titulo: str, texto: str, tipo: str = "info") -> bool:
+    """
+    Muestra un QMessageBox creado manualmente con estilo garantizado.
+    tipo: "info", "warning", o "question".
+    Retorna True si el usuario presionó Sí/Aceptar, False si fue No/Cancelar.
+    Para "info" y "warning" siempre retorna True (solo hay un botón).
+    """
+    from PyQt6.QtWidgets import QMessageBox
+
+    box = QMessageBox(parent)
+    box.setWindowTitle(titulo)
+    box.setText(texto)
+
+    if tipo == "warning":
+        box.setIcon(QMessageBox.Icon.Warning)
+        box.setStandardButtons(QMessageBox.StandardButton.Ok)
+    elif tipo == "question":
+        box.setIcon(QMessageBox.Icon.Question)
+        box.setStandardButtons(
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+    else:
+        box.setIcon(QMessageBox.Icon.Information)
+        box.setStandardButtons(QMessageBox.StandardButton.Ok)
+
+    box.setStyleSheet(f"""
+        QMessageBox {{
+            background-color: {COLOR_SURFACE};
+        }}
+        QMessageBox QLabel {{
+            color: {COLOR_TEXT};
+            font-size: 13px;
+            background-color: transparent;
+        }}
+        QPushButton {{
+            background-color: {COLOR_PRIMARY};
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 20px;
+            font-size: 13px;
+            font-weight: bold;
+            min-width: 80px;
+        }}
+        QPushButton:hover {{
+            background-color: {COLOR_PRIMARY_DARK};
+        }}
+    """)
+
+    resultado = box.exec()
+    return resultado == QMessageBox.StandardButton.Yes or resultado == QMessageBox.StandardButton.Ok  

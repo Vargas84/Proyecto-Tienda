@@ -75,7 +75,7 @@ class VentaService:
         self._venta_repo.liberar_id_venta()
         self._factura_actual = None
 
-    def confirmar_factura(self, cliente: Cliente) -> Venta:
+    def confirmar_factura(self, cliente: Cliente, empleado_nombre:str ="-") -> Venta:
         """
         Confirma la factura de venta, descuenta stock y la guarda.
 
@@ -112,7 +112,7 @@ class VentaService:
             '%d/%m/%Y %H:%M:%S'
         )
         self._factura_actual.cliente = cliente
-
+        self._factura_actual.empleado_nombre = empleado_nombre
         # Descontamos el stock de cada producto vendido.
         # disminuir_stock() está en el modelo Producto y maneja
         # automáticamente el cambio a No Disponible si stock llega a 0.

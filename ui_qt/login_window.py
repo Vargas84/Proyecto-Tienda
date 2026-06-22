@@ -52,7 +52,7 @@ class LoginWindow(QMainWindow):
 
     def _construir_ui(self):
         self.setWindowTitle("Sistema de Inventarios — Acceso")
-        self.setFixedSize(420, 580)
+        self.setFixedSize(460, 720)
         self.setStyleSheet(f"background-color: {styles.COLOR_BG};")
 
         central = QWidget()
@@ -61,7 +61,7 @@ class LoginWindow(QMainWindow):
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.setContentsMargins(40, 40, 40, 40)
 
-        titulo = QLabel("📦 Sistema de Inventarios")
+        titulo = QLabel(" Sistema de Inventarios")
         titulo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         titulo.setStyleSheet(
             f"font-size: 22px; font-weight: bold; color: {styles.COLOR_TEXT};"
@@ -153,7 +153,8 @@ class LoginWindow(QMainWindow):
     def _vista_registro(self) -> QWidget:
         w = QWidget()
         lay = QVBoxLayout(w)
-        lay.setSpacing(8)
+        lay.setSpacing(6)
+        lay.setContentsMargins(0, 0, 0, 0)
 
         titulo = QLabel("Crear usuario")
         titulo.setStyleSheet(
@@ -167,35 +168,35 @@ class LoginWindow(QMainWindow):
         self._inp_nombre = QLineEdit()
         self._inp_nombre.setPlaceholderText("Ana García")
         self._inp_nombre.setStyleSheet(styles.input_field())
-        self._inp_nombre.setFixedHeight(38)
+        self._inp_nombre.setFixedHeight(36)
         lay.addWidget(self._inp_nombre)
 
         lay.addWidget(self._label("Documento"))
         self._inp_doc_reg = QLineEdit()
         self._inp_doc_reg.setPlaceholderText("12345678")
         self._inp_doc_reg.setStyleSheet(styles.input_field())
-        self._inp_doc_reg.setFixedHeight(38)
+        self._inp_doc_reg.setFixedHeight(36)
         lay.addWidget(self._inp_doc_reg)
 
         lay.addWidget(self._label("Teléfono"))
         self._inp_tel = QLineEdit()
         self._inp_tel.setPlaceholderText("3001234567")
         self._inp_tel.setStyleSheet(styles.input_field())
-        self._inp_tel.setFixedHeight(38)
+        self._inp_tel.setFixedHeight(36)
         lay.addWidget(self._inp_tel)
 
         lay.addWidget(self._label("Correo electrónico"))
         self._inp_correo = QLineEdit()
         self._inp_correo.setPlaceholderText("ana@gmail.com")
         self._inp_correo.setStyleSheet(styles.input_field())
-        self._inp_correo.setFixedHeight(38)
+        self._inp_correo.setFixedHeight(36)
         lay.addWidget(self._inp_correo)
 
         lay.addWidget(self._label("Contraseña"))
         self._inp_pass_reg = QLineEdit()
         self._inp_pass_reg.setPlaceholderText("Mínimo 8 chars")
         self._inp_pass_reg.setStyleSheet(styles.input_field())
-        self._inp_pass_reg.setFixedHeight(38)
+        self._inp_pass_reg.setFixedHeight(36)
         self._inp_pass_reg.setEchoMode(QLineEdit.EchoMode.Password)
         lay.addWidget(self._inp_pass_reg)
 
@@ -289,8 +290,26 @@ class LoginWindow(QMainWindow):
         )
         return lbl
 
+
     def _error(self, msg: str):
-        QMessageBox.warning(self, "Error", msg)
+        styles.mostrar_mensaje(self, "Error", msg, "warning")
 
     def _exito(self, msg: str):
-        QMessageBox.information(self, "Éxito", msg)
+        styles.mostrar_mensaje(self, "Éxito", msg, "info")
+        
+    """def _error(self, msg: str):
+        box = QMessageBox(self)
+        box.setIcon(QMessageBox.Icon.Warning)
+        box.setWindowTitle("Error")
+        box.setText(msg)
+        box.setStyleSheet(styles.msgbox_style())
+        box.exec()
+
+    def _exito(self, msg: str):
+        box = QMessageBox(self)
+        box.setIcon(QMessageBox.Icon.Information)
+        box.setWindowTitle("Éxito")
+        box.setText(msg)
+        box.setStyleSheet(styles.msgbox_style())
+        box.exec()"""
+    

@@ -26,12 +26,14 @@ class ComprasWindow(QWidget):
     """Módulo de compras — registro de facturas de entrada."""
 
     def __init__(self, compra_svc: CompraService,
-                 prod_svc: ProductoService,
-                 auth_svc: AuthService):
+             prod_svc: ProductoService,
+             auth_svc: AuthService,
+             usuario):
         super().__init__()
         self._compra_svc  = compra_svc
         self._prod_svc    = prod_svc
         self._auth_svc    = auth_svc
+        self._usuario     = usuario
         self._v_nombre    = NombreValidator()
         self._v_precio    = PrecioValidator()
         self._v_cantidad  = CantidadValidator()
@@ -188,6 +190,8 @@ class ComprasWindow(QWidget):
             QTableWidget.EditTrigger.NoEditTriggers
         )
         lay.addWidget(self._tabla_historial)
+        # Doble clic en una fila abre el detalle de esa factura
+        self._tabla_historial.doubleClicked.connect(self._ver_detalle_factura)
 
         self._cargar_historial()
         return w
@@ -202,7 +206,9 @@ class ComprasWindow(QWidget):
                     c.proveedor.nombre_empresa if c.proveedor else "-"
                 )
             )
-            self._tabla_historial.setItem(i, 2, self._celda("-"))
+            self._tabla_historial.setItem(
+                i, 2, self._celda(c.empleado_nombre or "-")
+)
             self._tabla_historial.setItem(
                 i, 3, self._celda(c.fecha_hora or "-")
             )
@@ -230,12 +236,11 @@ class ComprasWindow(QWidget):
         self._actualizar_tabla_factura()
 
     def _cancelar_factura(self):
-        resp = QMessageBox.question(
+        confirmado = styles.mostrar_mensaje(
             self, "Cancelar",
-            "¿Seguro que quieres cancelar esta factura?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        )
-        if resp == QMessageBox.StandardButton.Yes:
+            "¿Seguro que quieres cancelar esta factura?", "question"
+)
+        if confirmado:
             self._compra_svc.cancelar_factura()
             self._resetear_factura()
 
@@ -364,7 +369,7 @@ class ComprasWindow(QWidget):
             try:
                 validator.validar(valor)
             except AppError as e:
-                QMessageBox.warning(self, "Error", f"{campo}: {e}")
+                styles.mostrar_mensaje(self, "Error", f"{campo}: {e}", "warning")
                 return
 
         try:
@@ -375,11 +380,11 @@ class ComprasWindow(QWidget):
             self._actualizar_tabla_factura()
             dlg.accept()
         except AppError as e:
-            QMessageBox.warning(self, "Error", str(e))
+            styles.mostrar_mensaje(self, "Error", str(e), "warning")
 
     def _dlg_confirmar(self):
         if not self._factura_activa or not self._factura_activa.lista_detalles:
-            QMessageBox.warning(self, "Error", "La factura no tiene productos.")
+            styles.mostrar_mensaje(self, "Error", "La factura no tiene productos.", "warning")
             return
 
         dlg = QDialog(self)
@@ -437,23 +442,141 @@ class ComprasWindow(QWidget):
             try:
                 validator.validar(valor)
             except AppError as e:
-                QMessageBox.warning(self, "Error", f"{campo}: {e}")
+                styles.mostrar_mensaje(self, "Error", f"{campo}: {e}", "warning")
                 return
 
         proveedor = Proveedor(nombre, int(doc), int(tel))
         try:
-            confirmada = self._compra_svc.confirmar_factura(proveedor, "-")
-            QMessageBox.information(
+            confirmada = self._compra_svc.confirmar_factura(proveedor, self._usuario.nombre)
+            styles.mostrar_mensaje(
                 self, "Compra confirmada",
                 f"Factura #{confirmada.id_factura} confirmada.\n"
-                f"Total: ${confirmada.total_factura:,.0f}"
+                f"Total: ${confirmada.total_factura:,.0f}", "info"
             )
             dlg.accept()
             self._resetear_factura()
             self._cargar_historial()
         except AppError as e:
-            QMessageBox.warning(self, "Error", str(e))
+            styles.mostrar_mensaje(self, "Error", str(e), "warning")
+            
+            
+            
+            
+            
+    def _ver_detalle_factura(self, index):
+        """Abre ventana de detalle al hacer doble clic en una factura."""
+        fila = index.row()
+        id_item = self._tabla_historial.item(fila, 0)
+        if id_item is None:
+            return
 
+        id_factura = int(id_item.text())
+        compras = self._compra_svc.obtener_todas_las_compras()
+        factura = next((c for c in compras if c.id_factura == id_factura), None)
+        if factura is None:
+            return
+
+        self._mostrar_ventana_detalle(factura)
+        
+        
+        
+    def _mostrar_ventana_detalle(self, factura):
+        """Muestra una ventana con el detalle completo de una factura."""
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QHeaderView, QPushButton, QHBoxLayout
+
+        dlg = QDialog(self)
+        dlg.setWindowTitle(f"Detalle — Factura #{factura.id_factura}")
+        dlg.setMinimumSize(700, 450)
+        dlg.setStyleSheet(f"background-color: {styles.COLOR_SURFACE};")
+
+        lay = QVBoxLayout(dlg)
+        lay.setContentsMargins(24, 24, 24, 24)
+        lay.setSpacing(12)
+
+        # Encabezado de la factura
+        lay.addWidget(self._lbl_detalle(
+            f"Factura #{factura.id_factura}", grande=True
+        ))
+
+        info = QHBoxLayout()
+        info.addWidget(self._lbl_detalle(
+            f"Proveedor: {factura.proveedor.nombre_empresa if factura.proveedor else '-'}"
+        ))
+        info.addStretch()
+        info.addWidget(self._lbl_detalle(
+            f"Empleado: {factura.empleado_nombre or '-'}"
+        ))
+        info.addStretch()
+        info.addWidget(self._lbl_detalle(
+            f"Fecha: {factura.fecha_hora or '-'}"
+        ))
+        lay.addLayout(info)
+
+        # Tabla de productos
+        tabla = QTableWidget()
+        tabla.setStyleSheet(styles.table_style())
+        tabla.setColumnCount(6)
+        tabla.setHorizontalHeaderLabels([
+            "Cód.", "Producto", "Tipo",
+            "Cantidad", "P. Compra", "Subtotal"
+        ])
+
+        _h = tabla.horizontalHeader()
+        assert _h is not None
+        _h.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        _v = tabla.verticalHeader()
+        assert _v is not None
+        _v.setVisible(False)
+
+        tabla.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        tabla.setRowCount(len(factura.lista_detalles))
+
+        for i, d in enumerate(factura.lista_detalles):
+            tipo = "Nuevo" if d.es_nuevo else "Inventario"
+            tabla.setItem(i, 0, self._celda(str(d.id_detalle)))
+            tabla.setItem(i, 1, self._celda(d.producto.nombre))
+            tabla.setItem(i, 2, self._celda(tipo))
+            tabla.setItem(i, 3, self._celda(str(d.cantidad_compra)))
+            tabla.setItem(i, 4, self._celda(f"${d.precio_compra:,.0f}"))
+            tabla.setItem(i, 5, self._celda(f"${d.subtotal:,.0f}"))
+            tabla.setRowHeight(i, 44)
+
+        lay.addWidget(tabla)
+
+        # Total
+        total_lbl = QLabel(f"Total: ${factura.total_factura:,.0f}")
+        total_lbl.setStyleSheet(
+            f"font-size: 16px; font-weight: bold; color: {styles.COLOR_TEXT};"
+        )
+        total_lbl.setAlignment(Qt.AlignmentFlag.AlignRight)
+        lay.addWidget(total_lbl)
+
+        # Botón cerrar
+        btn_cerrar = QPushButton("Cerrar")
+        btn_cerrar.setStyleSheet(styles.btn_secondary())
+        btn_cerrar.setFixedHeight(38)
+        btn_cerrar.clicked.connect(dlg.accept)
+
+        btns = QHBoxLayout()
+        btns.addStretch()
+        btns.addWidget(btn_cerrar)
+        lay.addLayout(btns)
+
+        dlg.exec()
+        
+        
+    def _lbl_detalle(self, texto: str, grande: bool = False) -> QLabel:
+        lbl = QLabel(texto)
+        if grande:
+            lbl.setStyleSheet(
+                f"font-size: 18px; font-weight: bold; color: {styles.COLOR_TEXT};"
+            )
+        else:
+            lbl.setStyleSheet(
+                f"font-size: 13px; color: {styles.COLOR_TEXT_MUTED};"
+            )
+        return lbl
     # -------------------------------------------------------------------------
     # UTILIDADES
     # -------------------------------------------------------------------------
@@ -469,3 +592,5 @@ class ComprasWindow(QWidget):
         inp.setStyleSheet(styles.input_field())
         inp.setFixedHeight(36)
         return inp
+    
+    

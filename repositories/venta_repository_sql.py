@@ -79,6 +79,7 @@ class VentaRepositorySQL(BaseRepository):
             id_cliente = cursor_cli.lastrowid
 
             # PASO 2: Insertar la cabecera de la venta
+            # PASO 2: Insertar la cabecera de la venta
             cursor_venta = self._con.execute(
                 """
                 INSERT INTO facturas_venta
@@ -86,9 +87,9 @@ class VentaRepositorySQL(BaseRepository):
                 VALUES (?, ?, ?, ?)
                 """,
                 (id_cliente,
-                 venta.cliente.nombre_cliente,  # nombre como texto
-                 venta.fecha,
-                 venta.total_venta)
+                venta.empleado_nombre,  # nombre del EMPLEADO que confirma, no del cliente
+                venta.fecha,
+                venta.total_venta)
             )
             id_venta = cursor_venta.lastrowid
             assert id_venta is not None
@@ -203,9 +204,11 @@ class VentaRepositorySQL(BaseRepository):
           3. Detalles con sus Productos (datos históricos)
         """
         # Reconstruimos el objeto Venta
+        # Reconstruimos el objeto Venta
         venta = Venta(fila["id"])
-        venta.fecha           = fila["fecha"]
-        venta.total_venta     = fila["total"]
+        venta.fecha            = fila["fecha"]
+        venta.empleado_nombre  = fila["empleado_nombre"]
+        venta.total_venta      = fila["total"]
         venta.venta_confirmada = True
 
         # Reconstruimos el Cliente

@@ -64,10 +64,12 @@ class InventarioWindow(QWidget):
         # sepa que no es None antes de llamar setSectionResizeMode.
         _header = self._tabla.horizontalHeader()
         assert _header is not None
+        _header = self._tabla.horizontalHeader()
+        assert _header is not None
         _header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         _header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        _header.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)
-
+        _header.setSectionResizeMode(6, QHeaderView.ResizeMode.Fixed)
+        self._tabla.setColumnWidth(6, 280)
         self._tabla.setSelectionBehavior(
             QTableWidget.SelectionBehavior.SelectRows
         )
@@ -100,29 +102,32 @@ class InventarioWindow(QWidget):
             self._tabla.setItem(fila, 5, disp_item)
 
             self._tabla.setCellWidget(fila, 6, self._acciones(p))
-            self._tabla.setRowHeight(fila, 48)
+            self._tabla.setRowHeight(fila, 64)
 
     def _acciones(self, producto) -> QWidget:
+        """Crea los botones de acción para cada fila."""
         w = QWidget()
         lay = QHBoxLayout(w)
-        lay.setContentsMargins(4, 4, 4, 4)
-        lay.setSpacing(6)
+        lay.setContentsMargins(10, 10, 10, 10)
+        lay.setSpacing(10)
 
         btn_editar = QPushButton("Editar")
         btn_editar.setStyleSheet(styles.btn_secondary())
-        btn_editar.setFixedHeight(30)
+        btn_editar.setFixedHeight(36)
+        btn_editar.setMinimumWidth(80)
         btn_editar.clicked.connect(
             lambda _, p=producto: self._dlg_editar(p)
         )
 
         texto_disp = ("Desactivar" if producto.disponibilidad == "Disponible"
-                      else "Activar")
+                    else "Activar")
         btn_disp = QPushButton(texto_disp)
         btn_disp.setStyleSheet(
             styles.btn_danger() if producto.disponibilidad == "Disponible"
             else styles.btn_success()
         )
-        btn_disp.setFixedHeight(30)
+        btn_disp.setFixedHeight(36)
+        btn_disp.setMinimumWidth(100)
         btn_disp.clicked.connect(
             lambda _, p=producto: self._cambiar_disponibilidad(p)
         )
@@ -152,10 +157,10 @@ class InventarioWindow(QWidget):
         form = QFormLayout()
         form.setSpacing(10)
 
-        inp_nombre    = self._inp("Ej: Jabón líquido")
-        inp_precio    = self._inp("Ej: 5000")
-        inp_categoria = self._inp("Ej: Aseo")
-        inp_stock     = self._inp("Ej: 50")
+        inp_nombre    = self._inp("Nombre del producto (ej: Shampoo)")
+        inp_precio    = self._inp("Precio del producto (ej: 15000)")
+        inp_categoria = self._inp("Categoría del producto (ej: Aseo)")
+        inp_stock     = self._inp("Stock del producto (ej: 50)")
 
         form.addRow("Nombre:",    inp_nombre)
         form.addRow("Precio:",    inp_precio)
@@ -195,25 +200,25 @@ class InventarioWindow(QWidget):
             try:
                 validator.validar(valor)
             except AppError as e:
-                QMessageBox.warning(self, "Error", f"{campo}: {e}")
+                styles.mostrar_mensaje(self, "Error", f"{campo}: {e}", "warning")     
                 return
 
         if not self._prod_svc.nombre_disponible(nombre):
-            QMessageBox.warning(self, "Error", f"'{nombre}' ya está registrado.")
+            styles.mostrar_mensaje(self, "Error", f"'{nombre}' ya está registrado.", "warning")
             return
 
         try:
             p = self._prod_svc.agregar_producto(
                 nombre, float(precio), categoria, int(stock)
             )
-            QMessageBox.information(
+            styles.mostrar_mensaje(
                 self, "Éxito",
-                f"Producto '{p.nombre}' agregado con código {p.codigo}."
+                f"Prodcuto '{p.nombre}' agregado correctamente", "info"
             )
             dlg.accept()
             self._cargar_productos()
         except AppError as e:
-            QMessageBox.warning(self, "Error", str(e))
+            styles.mostrar_mensaje(self, "Error", str(e), "warning")
 
     def _dlg_editar(self, producto):
         dlg = QDialog(self)
@@ -295,23 +300,22 @@ class InventarioWindow(QWidget):
             return
 
         if cambios == 0:
-            QMessageBox.information(self, "Sin cambios",
-                                    "No se modificó ningún campo.")
+            styles.mostrar_mensaje(self, "Sin cambios",
+                                    "No se modificó ningún campo.", "info")
         else:
-            QMessageBox.information(self, "Éxito",
-                                    "Producto actualizado correctamente.")
+            styles.mostrar_mensaje(self, "Éxito",
+                                    "Producto actualizado correctamente.", "info")
         dlg.accept()
         self._cargar_productos()
 
     def _cambiar_disponibilidad(self, producto):
         nuevo = ("No Disponible" if producto.disponibilidad == "Disponible"
                  else "Disponible")
-        resp = QMessageBox.question(
+        confirmado = styles.mostrar_mensaje(
             self, "Confirmar",
-            f"¿Cambiar '{producto.nombre}' a {nuevo}?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            f"¿Cambiar '{producto.nombre}' a {nuevo}?", "question"
         )
-        if resp == QMessageBox.StandardButton.Yes:
+        if confirmado:
             self._prod_svc.cambiar_disponibilidad(producto.codigo)
             self._cargar_productos()
 
